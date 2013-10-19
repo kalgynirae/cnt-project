@@ -1,6 +1,6 @@
-#include <stdio.h>
+#include "hello.h"
 
 int main(int argc, char *argv[]) {
-    printf("Hello!\n");
+    say_hello();
     return 0;
 }
