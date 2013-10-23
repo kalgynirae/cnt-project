@@ -24,6 +24,7 @@ struct common_cfg read_cfg(char* cfg_file_name)
         }
     }
 
+
     return cfg;
 }
 
@@ -31,27 +32,25 @@ void parse_cfg_line(char *line, struct common_cfg *cfg)
 {
     char *key = strtok(line, " ");  //part before space
     char *val = strtok(NULL, " ");  //part after space (null uses previous str)
-    printf(key);
-    printf("-");
-    printf(val);
 
     //check key
-    if (strcmp(key, "NumberOfPreferredNeighbors") != 0) {
+    if (strcmp(key, "NumberOfPreferredNeighbors") == 0) {
         cfg->n_preferred_neighbors = atoi(val);
     }
-    else if (strcmp(key, "UnchokingInterval") != 0) {
+    else if (strcmp(key, "UnchokingInterval") == 0) {
         cfg->unchoke_interval = atoi(val);
     }
-    else if (strcmp(key, "OptimisticUnchokingInterval") != 0) {
+    else if (strcmp(key, "OptimisticUnchokingInterval") == 0) {
         cfg->optimistic_unchoke_interval = atoi(val);
     }
-    else if (strcmp(key, "FileName") != 0) {
-        cfg->file_name  = val;
+    else if (strcmp(key, "FileName") == 0) {
+        cfg->file_name  = malloc(strlen(val) + 1);
+        strcpy(cfg->file_name, val);
     }
-    else if (strcmp(key, "FileSize") != 0) {
+    else if (strcmp(key, "FileSize") == 0) {
         cfg->file_size = atoi(val);
     }
-    else if (strcmp(key, "PieceSize") != 0) {
+    else if (strcmp(key, "PieceSize") == 0) {
         cfg->piece_size = atoi(val);
     }
     else {
