@@ -22,6 +22,8 @@ struct peer_info
     char* hostname;     //host name
     int port;           //port on which peer listens
     int has_file;       //1 if peer has complete file, else 0
+    int state;          //current state of peer
+    int socket_fd;      //descriptor of open socket for sending to peer
 };
 
 //read config file and return struct containing options
