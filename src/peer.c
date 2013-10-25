@@ -1,5 +1,7 @@
 #include "peer.h"
 
+#define PORT_DIGITS 5
+
 int make_socket_to_peer(struct peer_info *info)
 {
     int s;  // for temporarily storing a function's return status
@@ -18,8 +20,8 @@ int make_socket_to_peer(struct peer_info *info)
     hints.ai_flags = AI_PASSIVE;
 
     // We need to pass the port as a string... go figure.
-    char port[sizeof(int)];
-    snprintf(port, sizeof(int), "%d", info->port);
+    char port[PORT_DIGITS + 1];
+    snprintf(port, PORT_DIGITS + 1, "%d", info->port);
 
     /*
      * Call getaddrinfo() and check for success
