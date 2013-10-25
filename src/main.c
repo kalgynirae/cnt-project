@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "init.h"
 #include "message.h"
+#include "peer_log.h"
 
 #define COMMON_CFG_PATH "config/Common.cfg"
 #define PEER_CFG_PATH "config/PeerInfo.cfg"
@@ -32,10 +33,6 @@ int main(int argc, char *argv[]) {
         printf("has_file: %d\n", info.has_file);
     }
 
-    printf("----------------------------------------\n");
-    message_t mess;
-    printf("sizeof(mess_handshake): %lu\n", sizeof(struct mess_handshake));
-    printf("sizeof(mess_normal): %lu\n", sizeof(struct mess_normal));
-
+    write_log(1024, "Hello");
     return 0;
 }
