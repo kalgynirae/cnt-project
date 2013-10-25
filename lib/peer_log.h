@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <stdlib.h>
+#include <string.h>
 
 /**
  * Functions used for logging events between peers
@@ -18,7 +19,7 @@
 void log_connect(int from_peer, int to_peer);
 
 //a peer has changed its preferred neighbors
-void log_change_preferred(int peer, int new_preferred[]);
+void log_change_preferred(int peer, int num_preferred, int new_preferred[]);
 
 //a peer has optimistically unchoked unchoked_peer
 void log_optimistic_unchoke(int peer, int unchoked_peer);
