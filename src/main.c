@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "init.h"
+#include "message.h"
 
 #define COMMON_CFG_PATH "config/Common.cfg"
 #define PEER_CFG_PATH "config/PeerInfo.cfg"
@@ -30,6 +31,11 @@ int main(int argc, char *argv[]) {
         printf("port: %d\n", info.port);
         printf("has_file: %d\n", info.has_file);
     }
+
+    printf("----------------------------------------\n");
+    message_t mess;
+    printf("sizeof(mess_handshake): %lu\n", sizeof(struct mess_handshake));
+    printf("sizeof(mess_normal): %lu\n", sizeof(struct mess_normal));
 
     return 0;
 }
