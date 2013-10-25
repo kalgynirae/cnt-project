@@ -48,7 +48,14 @@ void write_log(int peer, char* log)
         printf("Error opening log file for peer %d", peer);
     } else {
 
-        fputs(log, fp);
+        //get timestamp
+        time_t rawtime;
+        struct tm *tm;
+        time(&rawtime);
+        tm = localtime(&rawtime);
+
+        //append timestamped log line to file
+        fprintf(fp, "[%i:%i:%i]: %s\n", tm->tm_hour, tm->tm_min, tm->tm_sec, log);
 
         if (fclose(fp) != 0)
         {

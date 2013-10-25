@@ -2,13 +2,15 @@
 #define _peer_log_h
 
 #include <stdio.h>
+#include <time.h>
+#include <stdlib.h>
 
 /**
  * Functions used for logging events between peers
  */
 
 //peer ids are 4 digits
-#define LOG_FILENAME "log/peer_%4d.log"
+#define LOG_FILENAME "runtime/peer_%4d.log"
 //length of log filename. remove %4d (-3) but add 4 digits, so +1
 #define LOG_FILENAME_LEN sizeof(LOG_FILENAME) + 1
 

@@ -33,6 +33,6 @@ int main(int argc, char *argv[]) {
         printf("has_file: %d\n", info.has_file);
     }
 
-    write_log(1024, "Hello");
+    write_log(1024, "Something");
     return 0;
 }
