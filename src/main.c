@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include "init.h"
+#include "message.h"
+#include "peer_log.h"
 
 #define COMMON_CFG_PATH "config/Common.cfg"
 #define PEER_CFG_PATH "config/PeerInfo.cfg"
@@ -31,5 +33,25 @@ int main(int argc, char *argv[]) {
         printf("has_file: %d\n", info.has_file);
     }
 
+    log_connect(1000, 1001);
+
+    int preferred[3] = {1003, 1004, 1005};
+    log_change_preferred(1000, 3, preferred);
+
+    log_optimistic_unchoke(1000, 1001);
+
+    log_unchoked_by(1000, 1001);
+
+    log_recieve_choke(1000, 1001);
+
+    log_recieved_have(1000, 1001);
+
+    log_recieved_interested(1000, 1001);
+
+    log_recieved_not_interested(1000, 1001);
+
+    log_downloaded_piece(1000, 1001);
+
+    log_downloaded_file(1000);
     return 0;
 }
