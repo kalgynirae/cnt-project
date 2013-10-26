@@ -90,6 +90,8 @@ int open_socket(char *hostname, char *port, int connect_or_bind)
 
     // Free the linked list from earlier
     freeaddrinfo(result);
+
+    return socket_fd;
 }
 
 int make_socket_to_peer(struct peer_info *info)
