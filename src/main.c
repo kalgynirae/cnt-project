@@ -172,7 +172,37 @@ int main(int argc, char *argv[])
         peer_info *the_peer = ...;
         peer_state = the_peer->state;
 
-        // Handle the request
+        if (select_gave_us_a_file_descriptor)
+        {
+            else if (peer_state == PEER_WAIT_FOR_HANDSHAKE)
+            {
+                // Transition to bitfield if rcv'd handshake and handshake is valid
+                if (fd==handshake && handshakevalid(fd))
+                {
+                    // Send bitfield
+                    the_peer->time_last_message_sent = time();
+                    the_peer->state = PEER_WAIT_FOR_BITFIELD;
+                }
+            }
+            else if (peer_state == PEER_WAIT_FOR_BITFIELD)
+            {
+                // Rcv'd bitfield 
+                if (fd==bitfield)
+                {
+                    if (bitfield_has_interesting_bits)
+                    {
+                        // Send interested
+                    }
+                    else
+                    {
+                        // Send not interested
+                    }
+                    the_peer->state = PEER_CHOKED;
+                }
+            }
+        }
+////////// Do timeout stuff
+        // No FD will trigger when the Peer is not connected
         if (peer_state == PEER_NOT_CONNECTED)
         {
             // Send our handshake message
@@ -189,13 +219,6 @@ int main(int argc, char *argv[])
                 // Start a timer and attach it to the peer_info struct
                 the_peer->time_last_message_sent = time();
             }
-            // Transition to bitfield if rcv'd handshake and handshake is valid
-            else if ( 0 )
-            {
-                // Send bitfield
-                the_peer->time_last_message_sent = time();
-                the_peer->state = PEER_WAIT_FOR_BITFIELD;
-            }
         }
         else if (peer_state == PEER_WAIT_FOR_BITFIELD)
         {
@@ -203,7 +226,6 @@ int main(int argc, char *argv[])
             // bitfield was sent because the peer has no interesting pieces.
             if (time() - the_peer->time_last_message_sent >= BITFIELD_TIMEOUT_TIME)
             {
-
 
             }
         }
