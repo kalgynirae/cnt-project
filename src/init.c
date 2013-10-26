@@ -110,5 +110,8 @@ struct peer_info parse_peer_line(char *line)
     info.port = atoi(strtok(NULL, " "));
     info.has_file = atoi(strtok(NULL, " "));
 
+    info.state = 0;
+    info.socket_fd = -1;
+
     return info;
 }
