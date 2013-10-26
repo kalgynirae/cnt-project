@@ -1,4 +1,7 @@
+#include <errno.h>
+#include <fcntl.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/types.h>
 #include <sys/select.h>
 #include <sys/socket.h>
@@ -65,26 +68,104 @@ int main(int argc, char *argv[])
 
     // Open a socket from which to receive things
     int receiving_socket_fd = open_socket_and_listen(RECEIVE_PORT);
+    if (receiving_socket_fd == -1)
+    {
+        printf("open_socket_and_listen() failure\n");
+        exit(EXIT_FAILURE);
+    }
 
-    while (true) {
-        /*
-         * Set up parameters for select()
-         */
-        // We want to timeout after five seconds of waiting
+    /*
+     * Set up parameters for select()
+     */
+    // Construct the list of file descriptors
+    int max_fd;
+    fd_set master, read_fds;
+    FD_ZERO(&master);
+    FD_ZERO(&read_fds);
+    FD_SET(receiving_socket_fd, &read_fds);
+    max_fd = receiving_socket_fd;
+
+    // Allocate a buffer to store data read from socket
+    char buffer[BUFSIZ];
+
+    /*
+     * select() loop
+     *
+     * This stuff is basically straight from the Wikipedia page for select()
+     */
+    for (;;)
+    {
+        // We want to timeout after five seconds of waiting. This has to be
+        // reset each time because select() modifies it.
         struct timeval tv;
         tv.tv_sec = 5;
         tv.tv_usec = 0;
 
-        // Construct the list of file descriptors
-        fd_set read_fds;
-        FD_ZERO(&read_fds);
-        FD_SET(STDIN, &read_fds);
+        // Dunno why this is necessary
+        memcpy(&read_fds, &master, sizeof(master));
 
         // Call select()
-        select(...);
+        int nready = select(max_fd + 1, &read_fds, NULL, NULL, &tv);
+        printf("select() returned, woo!\n");
+        if (nready == -1)
+        {
+            perror("select()");
+            exit(EXIT_FAILURE);
+        }
+
+        for (i = 0; i <= max_fd && nready > 0; i++)
+        {
+            if (FD_ISSET(i, &read_fds))
+            {
+                nready--;
+                if (i == receiving_socket_fd)
+                {
+                    int new = accept(receiving_socket_fd, NULL, NULL);
+                    if (new == -1)
+                    {
+                        if (EWOULDBLOCK != errno)
+                        {
+                            perror("accept()");
+                            exit(EXIT_FAILURE);
+                        }
+                        break;
+                    }
+                    else
+                    {
+                        if (-1 == fcntl(new, F_SETFD, O_NONBLOCK))
+                        {
+                            perror("fcntl()");
+                            exit(EXIT_FAILURE);
+                        }
+                        FD_SET(new, &master);
+                        if (max_fd < new)
+                            max_fd = new;
+                    }
+                }
+                else
+                {
+                    int nbytes = recv(i, buffer, sizeof(buffer), 0);
+                    {
+                        buffer[nbytes] = '\0';
+                        printf("%s", buffer);
+                    }
+                    if (nbytes <= 0)
+                    {
+                        if (EWOULDBLOCK != errno)
+                        {
+                            perror("recv()");
+                            exit(EXIT_FAILURE);
+                        }
+                        break;
+                    }
+                    close(i);
+                    FD_CLR(i, &master);
+                }
+            }
+        }
 
         // Figure out which peer
-        peer_info *the_peer = ...;
+        //struct peer_info *the_peer = ...;
 
         // Handle the request
 
