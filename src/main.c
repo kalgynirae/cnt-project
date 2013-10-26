@@ -169,9 +169,24 @@ int main(int argc, char *argv[])
         }
 
         // Figure out which peer
-        //struct peer_info *the_peer = ...;
+        peer_info *the_peer = ...;
+        peer_state = the_peer->state;
 
         // Handle the request
+        if (peer_state == PEER_NOT_CONNECTED)
+        {
+            // Send our handshake message
+            // start a timer and attach it to the peer_info struct
+            the_peer->time_last_message_sent = time();
+            the_peer->state = PEER_WAIT_FOR_HANDSHAKE;
+        }
+        else if (peer_state == PEER_WAIT_FOR_HANDSHAKE)
+        {
+            if (time() - the_peer->time_last_message_sent >= HANDSHAKE_TIMEOUT_TIME)
+            {
+
+            }
+        }
 
     }
     return 0;

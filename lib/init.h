@@ -5,6 +5,14 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define PEER_NOT_CONNECTED 0
+#define PEER_WAIT_FOR_HANDSHAKE 1
+#define PEER_WAIT_FOR_BITFIELD 2
+#define PEER_CHOKED 3
+#define PEER_WAIT_UNCHOKED 4
+
+#define HANDSHAKE_TIMEOUT_TIME 15
+
 //common configuration options for p2p session
 struct common_cfg
 {
