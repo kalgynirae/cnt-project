@@ -1,4 +1,4 @@
-#include "peer.h"
+#include "socket.h"
 
 #define PORT_DIGITS 5
 

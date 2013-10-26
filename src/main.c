@@ -6,7 +6,7 @@
 #include "init.h"
 #include "message.h"
 #include "peer_log.h"
-#include "peer.h"
+#include "socket.h"
 
 #define COMMON_CFG_PATH "config/Common.cfg"
 #define PEER_CFG_PATH "config/PeerInfo.cfg"

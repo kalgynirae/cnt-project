@@ -1,5 +1,5 @@
-#ifndef _peer_h
-#define _peer_h
+#ifndef _socket_h
+#define _socket_h
 
 #include <netdb.h>
 #include <stdio.h>
