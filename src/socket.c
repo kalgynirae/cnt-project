@@ -1,11 +1,11 @@
 #include "socket.h"
 
 #define OPEN_SOCKET_NEITHER 0
-#define OPEN_SOCKET_BIND 1
+#define OPEN_SOCKET_LISTEN 1
 #define OPEN_SOCKET_CONNECT 2
 #define PORT_DIGITS 5
 
-int open_socket(char *hostname, char *port, int connect_or_bind)
+int open_socket(char *hostname, char *port, int mode)
 {
     int s;  // for temporarily storing a function's return status
 
@@ -51,7 +51,7 @@ int open_socket(char *hostname, char *port, int connect_or_bind)
             continue;
         }
 
-        if (connect_or_bind == OPEN_SOCKET_CONNECT)
+        if (mode == OPEN_SOCKET_CONNECT)
         {
             // Try to connect() to the peer
             s = connect(socket_fd, rp->ai_addr, rp->ai_addrlen);
@@ -61,19 +61,23 @@ int open_socket(char *hostname, char *port, int connect_or_bind)
                 break;
             }
         }
-        else if (connect_or_bind == OPEN_SOCKET_BIND)
+        else if (mode == OPEN_SOCKET_LISTEN)
         {
             // Try to bind() to the socket
             s = bind(socket_fd, rp->ai_addr, rp->ai_addrlen);
             if (s == 0)
             {
-                // Success!
-                break;
+                s = listen(socket_fd, 0);
+                if (s == 0)
+                {
+                    // Success!
+                    break;
+                }
             }
         }
         else
         {
-            // Don't connect() or bind(). Guaranteed success!
+            // Don't connect() or bind(). Guaranteed success at this point!
             break;
         }
 
@@ -112,5 +116,5 @@ int make_socket_to_peer(struct peer_info *info)
 
 int open_socket_and_listen(char *port)
 {
-    return open_socket(NULL, port, OPEN_SOCKET_BIND);
+    return open_socket(NULL, port, OPEN_SOCKET_LISTEN);
 }

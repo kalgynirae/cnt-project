@@ -67,23 +67,22 @@ int main(int argc, char *argv[])
     log_downloaded_file(1000);
 
     // Open a socket from which to receive things
-    int receiving_socket_fd = open_socket_and_listen(RECEIVE_PORT);
-    if (receiving_socket_fd == -1)
+    int listen_socket_fd = open_socket_and_listen(RECEIVE_PORT);
+    if (listen_socket_fd == -1)
     {
-        printf("open_socket_and_listen() failure\n");
+        fprintf(stderr, "open_socket_and_listen() failure\n");
         exit(EXIT_FAILURE);
     }
 
     /*
      * Set up parameters for select()
      */
-    // Construct the list of file descriptors
-    int max_fd;
+    // Construct the lists of file descriptors
     fd_set master, read_fds;
     FD_ZERO(&master);
     FD_ZERO(&read_fds);
-    FD_SET(receiving_socket_fd, &read_fds);
-    max_fd = receiving_socket_fd;
+    FD_SET(listen_socket_fd, &master);
+    int max_fd = listen_socket_fd;
 
     // Allocate a buffer to store data read from socket
     char buffer[BUFSIZ];
@@ -95,6 +94,8 @@ int main(int argc, char *argv[])
      */
     for (;;)
     {
+        read_fds = master;
+
         // We want to timeout after five seconds of waiting. This has to be
         // reset each time because select() modifies it.
         struct timeval tv;
@@ -106,60 +107,63 @@ int main(int argc, char *argv[])
 
         // Call select()
         int nready = select(max_fd + 1, &read_fds, NULL, NULL, &tv);
-        printf("select() returned, woo!\n");
+        fprintf(stderr, "select() returned, woo!\n");
         if (nready == -1)
         {
             perror("select()");
             exit(EXIT_FAILURE);
         }
 
-        for (i = 0; i <= max_fd && nready > 0; i++)
+        for (i = 0; i <= max_fd; i++)
         {
             if (FD_ISSET(i, &read_fds))
             {
-                nready--;
-                if (i == receiving_socket_fd)
+                if (i == listen_socket_fd)
                 {
-                    int new = accept(receiving_socket_fd, NULL, NULL);
-                    if (new == -1)
+                    // This is the listening socket, so we're going to call
+                    // accept() to open a new socket.
+                    int new_fd = accept(listen_socket_fd, NULL, NULL);
+                    if (new_fd == -1)
                     {
-                        if (EWOULDBLOCK != errno)
-                        {
-                            perror("accept()");
-                            exit(EXIT_FAILURE);
-                        }
-                        break;
+                        perror("accept()");
+                        exit(EXIT_FAILURE);
                     }
-                    else
+
+                    // Not sure why we call fcntl() here
+                    //if (-1 == fcntl(new_fd, F_SETFD, O_NONBLOCK))
+                    //{
+                    //    perror("fcntl()");
+                    //    exit(EXIT_FAILURE);
+                    //}
+
+                    // Add new socket to the set and increase max_fd
+                    FD_SET(new_fd, &master);
+                    if (max_fd < new_fd)
                     {
-                        if (-1 == fcntl(new, F_SETFD, O_NONBLOCK))
-                        {
-                            perror("fcntl()");
-                            exit(EXIT_FAILURE);
-                        }
-                        FD_SET(new, &master);
-                        if (max_fd < new)
-                            max_fd = new;
+                        max_fd = new_fd;
                     }
                 }
                 else
                 {
+                    // This is not the listening socket, so we'll receive data
+                    // from it and print it.
                     int nbytes = recv(i, buffer, sizeof(buffer), 0);
-                    {
-                        buffer[nbytes] = '\0';
-                        printf("%s", buffer);
-                    }
                     if (nbytes <= 0)
                     {
-                        if (EWOULDBLOCK != errno)
+                        if (nbytes != 0)
                         {
                             perror("recv()");
                             exit(EXIT_FAILURE);
                         }
-                        break;
+                        close(i);
+                        FD_CLR(i, &master);
                     }
-                    close(i);
-                    FD_CLR(i, &master);
+                    else
+                    {
+                        // Print the data
+                        buffer[nbytes] = '\0';
+                        printf("%s", buffer);
+                    }
                 }
             }
         }
