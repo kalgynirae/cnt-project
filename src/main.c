@@ -184,8 +184,16 @@ int main(int argc, char *argv[])
         {
             if (time() - the_peer->time_last_message_sent >= HANDSHAKE_TIMEOUT_TIME)
             {
+                // Send our handshake message
+                // start a timer and attach it to the peer_info struct
+                the_peer->time_last_message_sent = time();
+            }
+            // transition to bitfield if rcv'd handshake and handshake is valid
+            else if ( 1 )
+            {
 
             }
+
         }
 
     }
