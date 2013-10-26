@@ -2,6 +2,7 @@
 #include <sys/types.h>
 #include <sys/select.h>
 #include <sys/socket.h>
+#include <unistd.h>
 #include "init.h"
 #include "message.h"
 #include "peer_log.h"
@@ -9,6 +10,7 @@
 
 #define COMMON_CFG_PATH "config/Common.cfg"
 #define PEER_CFG_PATH "config/PeerInfo.cfg"
+#define RECEIVE_PORT "9007"
 
 int main(int argc, char *argv[])
 {
@@ -60,5 +62,32 @@ int main(int argc, char *argv[])
     log_downloaded_piece(1000, 1001);
 
     log_downloaded_file(1000);
+
+    // Open a socket from which to receive things
+    int receiving_socket_fd = open_socket_and_listen(RECEIVE_PORT);
+
+    while (true) {
+        /*
+         * Set up parameters for select()
+         */
+        // We want to timeout after five seconds of waiting
+        struct timeval tv;
+        tv.tv_sec = 5;
+        tv.tv_usec = 0;
+
+        // Construct the list of file descriptors
+        fd_set read_fds;
+        FD_ZERO(&read_fds);
+        FD_SET(STDIN, &read_fds);
+
+        // Call select()
+        select(...);
+
+        // Figure out which peer
+        peer_info *the_peer = ...;
+
+        // Handle the request
+
+    }
     return 0;
 }
