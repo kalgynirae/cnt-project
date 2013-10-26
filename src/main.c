@@ -1,17 +1,22 @@
 #include <stdio.h>
+#include <sys/types.h>
+#include <sys/select.h>
+#include <sys/socket.h>
 #include "init.h"
 #include "message.h"
 #include "peer_log.h"
+#include "peer.h"
 
 #define COMMON_CFG_PATH "config/Common.cfg"
 #define PEER_CFG_PATH "config/PeerInfo.cfg"
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
     struct common_cfg cfg;
     struct peer_info *peers = NULL;
     int num_peers;
     int i;
-   
+
     cfg = read_cfg(COMMON_CFG_PATH);
 
     printf("NumberOfPreferredNeighbors = %d\n", cfg.n_preferred_neighbors);
@@ -31,6 +36,8 @@ int main(int argc, char *argv[]) {
         printf("hostname: %s\n", info.hostname);
         printf("port: %d\n", info.port);
         printf("has_file: %d\n", info.has_file);
+        printf("state: %d\n", info.state);
+        printf("socket_fd: %d\n", info.socket_fd);
     }
 
     log_connect(1000, 1001);
