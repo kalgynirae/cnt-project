@@ -11,7 +11,8 @@
 #define PEER_CHOKED 3
 #define PEER_WAIT_UNCHOKED 4
 
-#define HANDSHAKE_TIMEOUT_TIME 15
+#define HANDSHAKE_TIMEOUT_TIME 5
+#define BITFIELD_TIMEOUT_TIME 15
 
 //common configuration options for p2p session
 struct common_cfg

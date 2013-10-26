@@ -176,24 +176,36 @@ int main(int argc, char *argv[])
         if (peer_state == PEER_NOT_CONNECTED)
         {
             // Send our handshake message
-            // start a timer and attach it to the peer_info struct
+            // Start a timer and attach it to the peer_info struct
             the_peer->time_last_message_sent = time();
             the_peer->state = PEER_WAIT_FOR_HANDSHAKE;
         }
         else if (peer_state == PEER_WAIT_FOR_HANDSHAKE)
         {
+            // Self-edge when timeout occurs, re-send handshake
             if (time() - the_peer->time_last_message_sent >= HANDSHAKE_TIMEOUT_TIME)
             {
                 // Send our handshake message
-                // start a timer and attach it to the peer_info struct
+                // Start a timer and attach it to the peer_info struct
                 the_peer->time_last_message_sent = time();
             }
-            // transition to bitfield if rcv'd handshake and handshake is valid
-            else if ( 1 )
+            // Transition to bitfield if rcv'd handshake and handshake is valid
+            else if ( 0 )
+            {
+                // Send bitfield
+                the_peer->time_last_message_sent = time();
+                the_peer->state = PEER_WAIT_FOR_BITFIELD;
+            }
+        }
+        else if (peer_state == PEER_WAIT_FOR_BITFIELD)
+        {
+            // In the event of a timeout, go back to state 0, implying that no
+            // bitfield was sent because the peer has no interesting pieces.
+            if (time() - the_peer->time_last_message_sent >= BITFIELD_TIMEOUT_TIME)
             {
 
-            }
 
+            }
         }
 
     }
