@@ -133,7 +133,7 @@ void write_log(int peer, char* log)
 
     //open in append mode
     if ((fp = fopen(filename, "a")) == NULL) {
-        printf("Error opening log file for peer %d", peer);
+        fprintf(stderr, "Error opening log file for peer %d\n", peer);
     } else {
 
         //get timestamp
@@ -147,7 +147,7 @@ void write_log(int peer, char* log)
 
         if (fclose(fp) != 0)
         {
-            printf("Error closing log file for peer %d", peer);
+            fprintf(stderr, "Error closing log file for peer %d\n", peer);
         }
     }
 }
