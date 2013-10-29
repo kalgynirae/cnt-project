@@ -87,6 +87,9 @@ int main(int argc, char *argv[])
     // Allocate a buffer to store data read from socket
     char buffer[BUFSIZ];
 
+    // Var for storing the number of the peer each time we receive data
+    int peer_n;
+
     /*
      * select() loop
      *
@@ -95,6 +98,8 @@ int main(int argc, char *argv[])
     for (;;)
     {
         read_fds = master;
+
+        peer_n = -1;
 
         // We want to timeout after five seconds of waiting. This has to be
         // reset each time because select() modifies it.
@@ -145,6 +150,23 @@ int main(int argc, char *argv[])
                 }
                 else
                 {
+                    // Let's figure out which peer this socket belongs to.
+                    for (peer_n = 0; peer_n < num_peers; peer_n++)
+                    {
+                        if (i == peers[peer_n]->socket_fd)
+                            break;
+                    }
+                    if (peer_n < num_peers)
+                    {
+                        fprintf(stderr, "Received data from peer %d",
+                                peer_n);
+                    }
+                    else
+                    {
+                        fprintf(stderr, "Received data to a non-peer socket");
+                        peer_n = -1;
+                    }
+
                     // This is not the listening socket, so we'll receive data
                     // from it and print it.
                     int nbytes = recv(i, buffer, sizeof(buffer), 0);
@@ -168,13 +190,12 @@ int main(int argc, char *argv[])
             }
         }
 
-        // Figure out which peer
-        peer_info *the_peer = ...;
-        peer_state = the_peer->state;
-
-        if (select_gave_us_a_file_descriptor)
+        if (peer_n > 0)
         {
-            else if (peer_state == PEER_WAIT_FOR_HANDSHAKE)
+            // Figure out which peer
+            struct peer_info *the_peer = peers[peer_n];
+
+            else if (the_peer->state == PEER_WAIT_FOR_HANDSHAKE)
             {
                 // Transition to bitfield if rcv'd handshake and handshake is valid
                 if (fd==handshake && handshakevalid(fd))
@@ -184,7 +205,7 @@ int main(int argc, char *argv[])
                     the_peer->state = PEER_WAIT_FOR_BITFIELD;
                 }
             }
-            else if (peer_state == PEER_WAIT_FOR_BITFIELD)
+            else if (the_peer->state == PEER_WAIT_FOR_BITFIELD)
             {
                 // Rcv'd bitfield 
                 if (fd==bitfield)
@@ -201,35 +222,40 @@ int main(int argc, char *argv[])
                 }
             }
         }
+
 ////////// Do timeout stuff
-        // No FD will trigger when the Peer is not connected
-        if (peer_state == PEER_NOT_CONNECTED)
+        for (i = 0; i < num_peers; i++)
         {
-            // Send our handshake message
-            // Start a timer and attach it to the peer_info struct
-            the_peer->time_last_message_sent = time();
-            the_peer->state = PEER_WAIT_FOR_HANDSHAKE;
-        }
-        else if (peer_state == PEER_WAIT_FOR_HANDSHAKE)
-        {
-            // Self-edge when timeout occurs, re-send handshake
-            if (time() - the_peer->time_last_message_sent >= HANDSHAKE_TIMEOUT_TIME)
+            the_peer = peers[i];
+
+            // No FD will trigger when the Peer is not connected
+            if (the_peer->state == PEER_NOT_CONNECTED)
             {
                 // Send our handshake message
                 // Start a timer and attach it to the peer_info struct
                 the_peer->time_last_message_sent = time();
+                the_peer->state = PEER_WAIT_FOR_HANDSHAKE;
             }
-        }
-        else if (peer_state == PEER_WAIT_FOR_BITFIELD)
-        {
-            // In the event of a timeout, go back to state 0, implying that no
-            // bitfield was sent because the peer has no interesting pieces.
-            if (time() - the_peer->time_last_message_sent >= BITFIELD_TIMEOUT_TIME)
+            else if (the_peer->state == PEER_WAIT_FOR_HANDSHAKE)
             {
+                // Self-edge when timeout occurs, re-send handshake
+                if (time() - the_peer->time_last_message_sent >= HANDSHAKE_TIMEOUT_TIME)
+                {
+                    // Send our handshake message
+                    // Start a timer and attach it to the peer_info struct
+                    the_peer->time_last_message_sent = time();
+                }
+            }
+            else if (the_peer->state == PEER_WAIT_FOR_BITFIELD)
+            {
+                // In the event of a timeout, go back to state 0, implying that no
+                // bitfield was sent because the peer has no interesting pieces.
+                if (time() - the_peer->time_last_message_sent >= BITFIELD_TIMEOUT_TIME)
+                {
 
+                }
             }
         }
-
     }
     return 0;
 }
