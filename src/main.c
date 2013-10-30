@@ -7,7 +7,8 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include "init.h"
-#include "message.h"
+#include "sender.h"
+#include "receiver.h"
 #include "peer_log.h"
 #include "socket.h"
 
@@ -19,6 +20,15 @@ int main(int argc, char *argv[])
 {
     struct common_cfg cfg;
     struct peer_info *peers = NULL;
+    //track pieces that this peer has
+    bitfield_t bitfield;
+
+    /* incoming normal message. handshake needs to be handled separately
+     * probably need to read in as bytestream, then cast to correct message
+     * struct after checking if first 5 bytes == "HELLO"
+     */
+    struct mess_normal msg_in;
+
     int num_peers;
     int i;
 
@@ -86,6 +96,11 @@ int main(int argc, char *argv[])
 
     // Allocate a buffer to store data read from socket
     char buffer[BUFSIZ];
+    //number of bytes read
+    int nbytes;
+
+    // Var for storing the number of the peer each time we receive data
+    int peer_n;
 
     /*
      * select() loop
@@ -95,6 +110,8 @@ int main(int argc, char *argv[])
     for (;;)
     {
         read_fds = master;
+
+        peer_n = -1;
 
         // We want to timeout after five seconds of waiting. This has to be
         // reset each time because select() modifies it.
@@ -145,9 +162,26 @@ int main(int argc, char *argv[])
                 }
                 else
                 {
+                    // Let's figure out which peer this socket belongs to.
+                    for (peer_n = 0; peer_n < num_peers; peer_n++)
+                    {
+                        if (i == peers[peer_n].socket_fd)
+                            break;
+                    }
+                    if (peer_n < num_peers)
+                    {
+                        fprintf(stderr, "Received data from peer %d",
+                                peer_n);
+                    }
+                    else
+                    {
+                        fprintf(stderr, "Received data to a non-peer socket");
+                        peer_n = -1;
+                    }
+
                     // This is not the listening socket, so we'll receive data
                     // from it and print it.
-                    int nbytes = recv(i, buffer, sizeof(buffer), 0);
+                    nbytes = recv(i, buffer, sizeof(buffer), 0);
                     if (nbytes <= 0)
                     {
                         if (nbytes != 0)
@@ -168,11 +202,83 @@ int main(int argc, char *argv[])
             }
         }
 
-        // Figure out which peer
-        //struct peer_info *the_peer = ...;
+        struct peer_info the_peer;
+        if (peer_n > 0)
+        {
+            // Figure out which peer
+            the_peer = peers[peer_n];
+            //id of peer that sent message
+            int sender;
 
-        // Handle the request
+            if (the_peer.state == PEER_WAIT_FOR_HANDSHAKE)
+            {
+                // Transition to bitfield if rcv'd handshake and handshake is valid
+                if ((sender = parse_handshake_msg(buffer, nbytes)) >= 0)
+                {
+                    // Send bitfield
+                    the_peer.time_last_message_sent = time(NULL);
+                    the_peer.state = PEER_WAIT_FOR_BITFIELD;
+                }
+            }
+            else if (parse_normal_msg(buffer, nbytes, &msg_in))
+            {
+                // Rcv'd bitfield 
+                if (the_peer.state == PEER_WAIT_FOR_BITFIELD
+                        && msg_in.type == BITFIELD)
+                {
+                    //index of interesting piece
+                    int interesting = find_interesting_piece(bitfield, msg_in); 
+                    if (interesting == INCORRECT_MSG_TYPE)
+                    {
+                        fprintf(stderr, "incompatible message type");
+                    }
+                    else if (interesting == NO_INTERESTING_PIECE)
+                    {
+                        // Send not interested
+                    }
+                    else 
+                    {
+                        // Send interested
+                    }
+                    the_peer.state = PEER_CHOKED;
+                }
+            }
+        }
 
+////////// Do timeout stuff
+        for (i = 0; i < num_peers; i++)
+        {
+            the_peer = peers[i];
+
+            // No FD will trigger when the Peer is not connected
+            if (the_peer.state == PEER_NOT_CONNECTED)
+            {
+                // Send our handshake message
+                // Start a timer and attach it to the peer_info struct
+                the_peer.time_last_message_sent = time(NULL);
+                the_peer.state = PEER_WAIT_FOR_HANDSHAKE;
+            }
+            else if (the_peer.state == PEER_WAIT_FOR_HANDSHAKE)
+            {
+                // Self-edge when timeout occurs, re-send handshake
+                if (time(NULL) - the_peer.time_last_message_sent >= HANDSHAKE_TIMEOUT_TIME)
+                {
+                    // Send our handshake message
+                    // Start a timer and attach it to the peer_info struct
+                    the_peer.time_last_message_sent = time(NULL);
+                }
+            }
+            else if (the_peer.state == PEER_WAIT_FOR_BITFIELD)
+            {
+                // In the event of a timeout, go back to state 0, implying that no
+                // bitfield was sent because the peer has no interesting pieces.
+                if (time(NULL) - the_peer.time_last_message_sent 
+                        >= BITFIELD_TIMEOUT_TIME)
+                {
+
+                }
+            }
+        }
     }
     return 0;
 }
