@@ -8,7 +8,7 @@
 #include <unistd.h>
 #include "init.h"
 #include "sender.h"
-#include "reciever.h"
+#include "receiver.h"
 #include "peer_log.h"
 #include "socket.h"
 
