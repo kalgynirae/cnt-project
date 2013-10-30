@@ -26,6 +26,9 @@ struct mess_normal {
     unsigned char payload[];    //variable sized payload
 };
 
+//payload types
+typedef unsigned long bitfield_t;
+
 /* NOTES
  * When a peer recives a HAVE or BITFIELD message, it sends and INTERESTED 
  * method if the sender has a piece it is missing.
