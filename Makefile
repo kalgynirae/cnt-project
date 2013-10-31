@@ -2,7 +2,7 @@ CC = gcc
 CFLAGS = -Wall
 
 SOURCE_FILES = src/*.c
-EXECUTABLE = bin/test.app.sh.tar.jar.gz.exe.bin.yaml
+EXECUTABLE = bin/test
 INCLUDE_DIR = lib
 
 all: build
