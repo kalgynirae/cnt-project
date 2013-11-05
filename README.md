@@ -1,3 +1,6 @@
+Check the [wiki](https://github.com/kalgynirae/cnt-project/wiki) for
+useful info!
+
 CNT4007 Final Project
 Fall 2013
 
