@@ -1,6 +1,10 @@
 #ifndef _sender_h
 #define _sender_h
 
+#include <stdio.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
 #include "message.h"
 
 /* helper functions for sending messages
