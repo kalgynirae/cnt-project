@@ -6,7 +6,23 @@
  */
 int parse_handshake_msg(char message[], int n_bytes)
 {
-    return -1;
+    if (n_bytes != 32 || strncmp(message, "HELLO", 5) != 0)
+    {
+        return -1;
+    }
+    int i;
+    for (i = 5 ; i < 28 ; i++)
+    {
+        if (message[i] != 0)
+        {
+            return -1;
+        }
+    }
+    char sender_id[5];
+    strncpy(sender_id, message + 28, 4);
+    sender_id[4] = '\0';
+
+    return atoi(sender_id);
 }
 
  /*
