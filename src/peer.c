@@ -1,5 +1,7 @@
 #include "peer.h"
 
+#define has_piece(idx, bitfield) ((bitfield & (0x1 << idx)) !=0)
+
 int peer_handle_data(struct peer_info *peer, struct peer_info *me, char *data, int nbytes)
 {
     // incoming normal message. handshake needs to be handled separately
@@ -13,7 +15,7 @@ int peer_handle_data(struct peer_info *peer, struct peer_info *me, char *data, i
         // Transition to bitfield if rcv'd handshake and handshake is valid
         if ((sender = parse_handshake_msg(data, nbytes)) >= 0)
         {
-            send_bitfield(peer->socket_fd, bitfield);
+            send_bitfield(peer->socket_fd, me->bitfield);
             peer->time_last_message_sent = time(NULL);
             peer->state = PEER_WAIT_FOR_BITFIELD;
         }
@@ -24,11 +26,16 @@ int peer_handle_data(struct peer_info *peer, struct peer_info *me, char *data, i
         if (msg_in.type == HAVE)
         {
             // update bitfield, parse_have()?
-            if (bitfield mask function)
+            piece_n = parse_have(/*whatever goes here*/);
+            if (has_piece(piece_n, peer->bitfield))
+            {
                 send_interested(peer->socket_fd);
+            }
             else
+            {
                 send_not_interested(peer->socket_fd);
-
+            }
+            log_receieved_have(me->peer_id, peer->peer_id);
         }
         if (msg_in.type == INTERESTED)
         {
@@ -41,7 +48,7 @@ int peer_handle_data(struct peer_info *peer, struct peer_info *me, char *data, i
         // Rcv'd bitfield
         if (peer->state == PEER_WAIT_FOR_BITFIELD && msg_in.type == BITFIELD)
         {
-            int interesting = find_interesting_piece(bitfield, msg_in);
+            int interesting = find_interesting_piece(me->bitfield, msg_in);
             if (interesting == INCORRECT_MSG_TYPE)
             {
                 fprintf(stderr, "incompatible message type");
@@ -57,7 +64,6 @@ int peer_handle_data(struct peer_info *peer, struct peer_info *me, char *data, i
                 peer->state = PEER_CHOKED;
             }
         }
-        
     }
     else
     {
