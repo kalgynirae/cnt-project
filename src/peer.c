@@ -14,7 +14,7 @@ int peer_handle_data(struct peer_info *peer, char *data, int nbytes,
         // Transition to bitfield if rcv'd handshake and handshake is valid
         if ((sender = parse_handshake_msg(data, nbytes)) >= 0)
         {
-            // Send bitfield
+            send_bitfield(peer->socket_fd, bitfield);
             peer->time_last_message_sent = time(NULL);
             peer->state = PEER_WAIT_FOR_BITFIELD;
         }
@@ -32,14 +32,19 @@ int peer_handle_data(struct peer_info *peer, char *data, int nbytes,
             }
             else if (interesting == NO_INTERESTING_PIECE)
             {
-                // Send not interested
+                send_not_interested(peer->socket_fd);
+                peer->state = PEER_CHOKED;
             }
             else
             {
-                // Send interested
+                send_interested(peer->socket_fd);
+                peer->state = PEER_CHOKED;
             }
-            peer->state = PEER_CHOKED;
         }
+    }
+    else
+    {
+        fprintf(stderr, "Failed to parse normal message");
     }
 }
 
@@ -48,7 +53,7 @@ int peer_handle_timeout(struct peer_info *peer)
     // No FD will trigger when the Peer is not connected
     if (peer->state == PEER_NOT_CONNECTED)
     {
-        // Send our handshake message
+        send_handshake(peer->socket_fd, peer->peer_id);
         // Start a timer and attach it to the peer_info struct
         peer->time_last_message_sent = time(NULL);
         peer->state = PEER_WAIT_FOR_HANDSHAKE;
@@ -58,7 +63,7 @@ int peer_handle_timeout(struct peer_info *peer)
         // Self-edge when timeout occurs, re-send handshake
         if (time(NULL) - peer->time_last_message_sent >= HANDSHAKE_TIMEOUT_TIME)
         {
-            // Send our handshake message
+            send_handshake(peer->socket_fd, peer->peer_id);
             // Start a timer and attach it to the peer_info struct
             peer->time_last_message_sent = time(NULL);
         }
@@ -69,7 +74,7 @@ int peer_handle_timeout(struct peer_info *peer)
         // bitfield was sent because the peer has no interesting pieces.
         if (time(NULL) - peer->time_last_message_sent >= BITFIELD_TIMEOUT_TIME)
         {
-
+            peer->state = PEER_NOT_CONNECTED;
         }
     }
 }

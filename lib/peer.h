@@ -4,6 +4,7 @@
 #include <time.h>
 #include "init.h"
 #include "receiver.h"
+#include "sender.h"
 
 int peer_handle_data(struct peer_info *peer, char *data, int nbytes,
                      bitfield_t bitfield);
