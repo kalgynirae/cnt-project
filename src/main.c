@@ -19,6 +19,14 @@
 
 int main(int argc, char *argv[])
 {
+    if (argc != 2)
+    {
+        fprintf(stderr, "Specify peer number as a command line argument.");
+        exit(EXIT_FAILURE);
+    }
+    int my_peer_id = atoi(argv[1]);
+    struct peer_info my_peer;
+
     struct common_cfg cfg;
     struct peer_info *peers = NULL;
     bitfield_t bitfield;
@@ -40,6 +48,9 @@ int main(int argc, char *argv[])
     for (i = 0 ; i < num_peers ; i++)
     {
         struct peer_info info = peers[i];
+        // Grab our peer_info struct out of the thingy thing
+        if (my_peer_id == info.peer_id)
+            my_peer = peers[i];
 
         printf("peer_id: %d\n", info.peer_id);
         printf("hostname: %s\n", info.hostname);
@@ -48,6 +59,7 @@ int main(int argc, char *argv[])
         printf("state: %d\n", info.state);
         printf("socket_fd: %d\n", info.socket_fd);
     }
+
 
     /*
      * Test the various log message functions
@@ -195,7 +207,7 @@ int main(int argc, char *argv[])
              */
             if (peer_n >= 0)
             {
-                peer_handle_data(&peers[peer_n], buffer, nbytes, bitfield);
+                peer_handle_data(&peers[peer_n], my_peer, buffer, nbytes);
             }
 
         }

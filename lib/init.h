@@ -34,6 +34,7 @@ struct peer_info
     int state;          //current state of peer
     int socket_fd;      //descriptor of open socket for sending to peer
     int time_last_message_sent;     //time in seconds since THE EPOCH, using time()
+    bitfield_t bitfield;            //1 means we HAVE that piece, 0 missing
 };
 
 //read config file and return struct containing options

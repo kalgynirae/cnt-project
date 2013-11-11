@@ -1,7 +1,6 @@
 #include "peer.h"
 
-int peer_handle_data(struct peer_info *peer, char *data, int nbytes,
-                     bitfield_t bitfield)
+int peer_handle_data(struct peer_info *peer, struct peer_info *me, char *data, int nbytes)
 {
     // incoming normal message. handshake needs to be handled separately
     // probably need to read in as bytestream, then cast to correct message
@@ -21,9 +20,26 @@ int peer_handle_data(struct peer_info *peer, char *data, int nbytes,
     }
     else if (parse_normal_msg(data, nbytes, &msg_in))
     {
+        // Do these regardless of state:
+        if (msg_in.type == HAVE)
+        {
+            // update bitfield, parse_have()?
+            if (bitfield mask function)
+                send_interested(peer->socket_fd);
+            else
+                send_not_interested(peer->socket_fd);
+
+        }
+        if (msg_in.type == INTERESTED)
+        {
+            log_received_interested(me->peer_id, peer->peer_id);
+        }
+        if (msg_in.type == NOT_INTERESTED)
+        {
+            log_received_not_interested(me->peer_id, peer->peer_id);
+        }
         // Rcv'd bitfield
-        if (peer->state == PEER_WAIT_FOR_BITFIELD
-                && msg_in.type == BITFIELD)
+        if (peer->state == PEER_WAIT_FOR_BITFIELD && msg_in.type == BITFIELD)
         {
             int interesting = find_interesting_piece(bitfield, msg_in);
             if (interesting == INCORRECT_MSG_TYPE)
@@ -41,6 +57,7 @@ int peer_handle_data(struct peer_info *peer, char *data, int nbytes,
                 peer->state = PEER_CHOKED;
             }
         }
+        
     }
     else
     {
