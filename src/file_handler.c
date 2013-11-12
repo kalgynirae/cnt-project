@@ -1,5 +1,6 @@
 
 #include <stdio.h>
+#include "file_handler.h"
 
 int file_split(char* FILENAME, int FS, int PS, int P_ID){
 	//FILENAME: cfg.file_name
