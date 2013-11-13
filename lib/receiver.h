@@ -1,6 +1,8 @@
 #ifndef _receiver_h
 #define _receiver_h
 
+#include <stdlib.h>
+#include <string.h>
 #include "message.h"
 
 /* helper functions for sending messages
