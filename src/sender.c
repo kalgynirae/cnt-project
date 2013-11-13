@@ -1,7 +1,12 @@
 #include "sender.h"
 
 //helper methods for use within sender.c
-int send_msg(int sock_fd, message_t msg_type, unsigned char content[]);
+//send a normal message
+int norm_send(int sock_fd, 
+             message_t msg_type, 
+             unsigned char content[], 
+             size_t content_size);
+//pack an integer into the 4-byte array passed in
 void pack_int(unsigned int val, char bytes[4]);
 
 int send_handshake(int sock_fd, int sender_id)
@@ -56,15 +61,23 @@ int send_piece(int sock_fd, int piece_idx, unsigned char content[])
 }
 
 //helper methods for use within sender.c
-int send_msg(int sock_fd, message_t msg_type, unsigned char content[])
+int send_msg(int sock_fd, 
+             message_t msg_type, 
+             unsigned char content[], 
+             size_t content_size)
 {
-    struct mess_normal msg;
-    msg.type = msg_type;
-    //msg.payload = malloc(sizeof(content));
-    //msg.payload = content;
-    msg.length = sizeof(msg) - sizeof(msg.length);  //don't count length field
+    unsigned char msg[MSG_TYPE_LEN + MSG_LENGTH_LEN + content_size];
+    int msg_size = content_size + sizeof(message_t) + sizeof(int);
 
-    int rval = send(sock_fd, (void*)&msg, sizeof(msg), 0);
+    //write length field to message
+    pack_int(sizeof(message_t) + content_size, msg);
+    //write type field to message
+    msg[MSG_TYPE_POS] = msg_type;
+    //write content to message
+    memcpy(msg + MSG_CONTENT_POS, content, content_size);
+
+    //send message
+    int rval = send(sock_fd, (void*)&msg, msg_size, 0);
 
     if (rval < 0) {
         fprintf(stderr, "send_msg to sock_fd %d failed.\n", sock_fd);
@@ -75,6 +88,7 @@ int send_msg(int sock_fd, message_t msg_type, unsigned char content[])
 
 void pack_int(unsigned int val, char bytes[4])
 {
+    //network byte order is MSB first
     bytes[0] = (val >> 24) & 0xFF;
     bytes[1] = (val >> 16) & 0xFF;
     bytes[2] = (val >> 8) & 0xFF;
