@@ -32,16 +32,16 @@ int send_not_interested(int sock_fd);
 
 /* advertise ownership of piece. Payload: 4-byte piece index
  * piece_idx is the index of the advertised piece*/
-int send_have(int sock_fd, int piece_idx);
+int send_have(int sock_fd, unsigned int piece_idx);
 
 /* first message after connection established
  * each bit of bitfield is 0 for a missing piece or 1 for an owned piece*/
 int send_bitfield(int sock_fd, bitfield_t bitfield);
 
 /* request piece. Payload: 4-byte index of desired piece */
-int send_request(int sock_fd, int piece_idx);
+int send_request(int sock_fd, unsigned int piece_idx);
 
 /* send content. Payload: 4-byte piece index + content */
-int send_piece(int sock_fd, int piece_idx, unsigned char content[]);
+int send_piece(int sock_fd, unsigned int piece_idx, unsigned char content[]);
 
 #endif

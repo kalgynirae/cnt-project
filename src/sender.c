@@ -22,37 +22,43 @@ int send_handshake(int sock_fd, int sender_id)
 
 int send_choke(int sock_fd)
 {
-    return 0;
+    return norm_send(sock_fd, CHOKE, NULL, 0);
 }
 
 int send_unchoke(int sock_fd)
 {
-    return 0;
+    return norm_send(sock_fd, UNCHOKE, NULL, 0);
 }
 
 int send_interested(int sock_fd)
 {
-    return 0;
+    return norm_send(sock_fd, INTERESTED, NULL, 0);
 }
 
 int send_not_interested(int sock_fd)
 {
-    return 0;
+    return norm_send(sock_fd, NOT_INTERESTED, NULL, 0);
 }
 
-int send_have(int sock_fd, int piece_idx)
+int send_have(int sock_fd, unsigned int piece_idx)
 {
-    return 0;
+    unsigned char idx[4];
+    pack_int(piece_idx, idx);   //convert index to 4 bytes for sending
+    return norm_send(sock_fd, HAVE, idx, 0);
 }
 
 int send_bitfield(int sock_fd, bitfield_t bitfield)
 {
-    return 0;
+    unsigned char *content = malloc(sizeof(bitfield_t));
+    memcpy(content, bitfield, sizeof(bitfield_t));  //convert bitfield to char[]
+    return norm_send(sock_fd, HAVE, content, 0);
 }
 
 int send_request(int sock_fd, int piece_idx)
 {
-    return 0;
+    unsigned char idx[4];
+    pack_int(piece_idx, idx);   //convert index to 4 bytes for sending
+    return norm_send(sock_fd, REQUEST, idx, 0);
 }
 
 int send_piece(int sock_fd, int piece_idx, unsigned char content[])
