@@ -1,6 +1,21 @@
 #ifndef _message_h
 #define _message_h
 
+//handshake message definitions
+#define HS_GREETING "HELLO"                 //header
+#define HS_GREETING_LEN sizeof(HS_GREETING) //header length
+#define HS_PADDING_POS HS_GREETING_LEN      //starting offset of padding (zeros)
+#define HS_PADDING_LEN 23                   //length of padding (# of zeros)
+#define HS_ID_POS HS_PADDING_POS + HS_PADDING_LEN    //starting offset of peer_id
+#define HS_ID_LEN 4                         //length of peer_id
+
+//normal message definitions
+#define MSG_LEN_LEN 4                    //# of bytes to store length header
+#define MSG_LEN_POS 0                    //# of bytes to store length header
+#define MSG_TYPE_POS MSG_LEN_LEN         //starting offset of type header
+#define MSG_TYPE_LEN 1                      //length of type header
+#define MSG_CONTENT_POS MSG_TYPE_POS + MSG_TYPE_LEN      //length of type header
+
 enum {
     CHOKE,          //deselect preferred neighbors. No payload.
     UNCHOKE,        //select preferred neighbors. No payload.
