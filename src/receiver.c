@@ -1,5 +1,8 @@
 #include "receiver.h"
 
+//helper methods for use in receiver
+unsigned int unpack_int(char bytes[4]);
+
 /* Try to parse data received from a message as a handshake
  * If successful, return id of peer who sent handshake
  * Else, return -1
@@ -43,4 +46,11 @@ int parse_normal_msg(char message[], int n_bytes, struct mess_normal *mess)
 int find_interesting_piece(bitfield_t self_bits, struct mess_normal bitfield_msg)
 {
     return -1;
+}
+
+unsigned int unpack_int(char bytes[4])
+{
+    int i;
+    memcpy(&i, bytes, 4);
+    return ntohl(i);
 }
