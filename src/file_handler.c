@@ -32,7 +32,6 @@ int file_split(char* FILENAME, int FS, int PS, int P_ID){
 		}
 		fclose(fpr);
 	}
-
 }
 
 int file_merge(char* FILENAME, int FS, int PS, int P_ID){
@@ -66,6 +65,24 @@ int file_merge(char* FILENAME, int FS, int PS, int P_ID){
 		fclose(fpr);
 	}
 	fclose(fpw);
-	
-
 }
+
+//read the content from a local piece file into buffer
+//return size of content read or a negative number on error
+long read_piece(unsigned int piece_idx, char buffer[])
+{
+    //convert the piece index into the corresponding file path
+    //read the file into buffer
+    //return the size of the content read
+    return 0;
+}
+
+//get the content from a piece by reading the local piece file
+long write_piece(unsigned int piece_idx, char buffer[])
+{
+    //convert the piece index into the corresponding file path
+    //error if file already exists
+    //create file and write content to file
+    return 0;
+}
+
