@@ -10,8 +10,9 @@
 #define HS_ID_LEN 4                         //length of peer_id
 
 //normal message definitions
-#define MSG_LENGTH_LEN 4                    //# of bytes to store length header
-#define MSG_TYPE_POS MSG_LENGTH_LEN         //starting offset of type header
+#define MSG_LEN_LEN 4                    //# of bytes to store length header
+#define MSG_LEN_POS 0                    //# of bytes to store length header
+#define MSG_TYPE_POS MSG_LEN_LEN         //starting offset of type header
 #define MSG_TYPE_LEN 1                      //length of type header
 #define MSG_CONTENT_POS MSG_TYPE_POS + MSG_TYPE_LEN      //length of type header
 

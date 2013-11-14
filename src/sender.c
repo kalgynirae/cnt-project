@@ -7,13 +7,13 @@ int norm_send(int sock_fd,
              unsigned char content[], 
              size_t content_size);
 //pack an integer into the 4-byte array passed in
-void pack_int(unsigned int val, char bytes[4]);
+void pack_int(unsigned int val, unsigned char bytes[4]);
 
 int send_handshake(int sock_fd, int sender_id)
 {
-    char msg[32];
+    unsigned char msg[32];
 
-    strncpy(msg, HS_GREETING, HS_GREETING_LEN);      //prefix with greeting
+    strncpy((char*)msg, HS_GREETING, HS_GREETING_LEN);      //prefix with greeting
     memset(msg + HS_PADDING_POS, 0, HS_PADDING_LEN); //pad with zeroes
     pack_int(sender_id, msg + HS_ID_POS);    //place sender_id in last 4 bytes
 
@@ -61,12 +61,12 @@ int send_piece(int sock_fd, int piece_idx, unsigned char content[])
 }
 
 //helper methods for use within sender.c
-int send_msg(int sock_fd, 
+int norm_send(int sock_fd, 
              message_t msg_type, 
              unsigned char content[], 
              size_t content_size)
 {
-    unsigned char msg[MSG_TYPE_LEN + MSG_LENGTH_LEN + content_size];
+    unsigned char msg[MSG_TYPE_LEN + MSG_LEN_LEN + content_size];
     int msg_size = content_size + sizeof(message_t) + sizeof(int);
 
     //write length field to message
@@ -83,10 +83,17 @@ int send_msg(int sock_fd,
         fprintf(stderr, "send_msg to sock_fd %d failed.\n", sock_fd);
     }
 
+    unsigned char *c;
+    for (c = msg ; c < msg + MSG_TYPE_LEN + MSG_LEN_LEN + content_size ; c++)
+    {
+        printf("%x ", *c);
+    }
+    printf("\n");
+
     return rval;
 }
 
-void pack_int(unsigned int val, char bytes[4])
+void pack_int(unsigned int val, unsigned char bytes[4])
 {
     //network byte order is MSB first
     bytes[0] = (val >> 24) & 0xFF;
