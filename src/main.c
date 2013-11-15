@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
 {
     struct common_cfg cfg;
     struct peer_info *peers = NULL;
-    bitfield_t bitfield;
+    //bitfield_t bitfield;
 
     int num_peers;
     int i;
@@ -195,7 +195,8 @@ int main(int argc, char *argv[])
              */
             if (peer_n >= 0)
             {
-                peer_handle_data(&peers[peer_n], buffer, nbytes, bitfield);
+                //TODO make this work? is this going to be used here?
+                //peer_handle_data(&peers[peer_n], buffer, nbytes, bitfield);
             }
 
         }
