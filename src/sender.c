@@ -13,7 +13,7 @@ int send_handshake(int sock_fd, int sender_id)
 {
     unsigned char msg[32];
 
-    strncpy((char*)msg, HS_GREETING, HS_GREETING_LEN);      //prefix with greeting
+    strncpy((char*)msg, HS_GREETING, HEADER_SIZE);      //prefix with greeting
     memset(msg + HS_PADDING_POS, 0, HS_PADDING_LEN); //pad with zeroes
     pack_int(sender_id, msg + HS_ID_POS);    //place sender_id in last 4 bytes
 
@@ -50,18 +50,18 @@ int send_have(int sock_fd, unsigned int piece_idx)
 int send_bitfield(int sock_fd, bitfield_t bitfield)
 {
     unsigned char *content = malloc(sizeof(bitfield_t));
-    memcpy(content, bitfield, sizeof(bitfield_t));  //convert bitfield to char[]
+    memcpy((void*)content, (void*)bitfield, sizeof(bitfield_t));  //convert bitfield to char[]
     return norm_send(sock_fd, HAVE, content, 0);
 }
 
-int send_request(int sock_fd, int piece_idx)
+int send_request(int sock_fd, unsigned int piece_idx)
 {
     unsigned char idx[4];
     pack_int(piece_idx, idx);   //convert index to 4 bytes for sending
     return norm_send(sock_fd, REQUEST, idx, 0);
 }
 
-int send_piece(int sock_fd, int piece_idx, unsigned char content[])
+int send_piece(int sock_fd, unsigned int piece_idx, unsigned char content[])
 {
     return 0;
 }
