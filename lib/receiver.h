@@ -22,8 +22,9 @@
 
 /* read a message from the socked descriptor sockfd
  * return the type of the message, or MSG_INVALID if an error occurs
- * place the length of the payload in payload_len
- * place the content of the payload in payload
+ * point length to the length of the payload (0 if no payload)
+ * point payload to a malloc'd buffer containng the payload (or NULL if no payload)
+ * remember to free payload after use!!
  */
 message_t recv_msg(int sockfd, unsigned int *payload_len, unsigned char **payload);
 
