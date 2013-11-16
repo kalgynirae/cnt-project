@@ -119,7 +119,7 @@ int main(void)
 
         if (!fork()) { // this is the child process
             close(sockfd); // child doesn't need the listener
-            if (norm_send(new_fd, UNCHOKE, "content", 8) == -1)
+            if (send_handshake(new_fd, 1001) == -1)
                 perror("send");
             close(new_fd);
             exit(0);

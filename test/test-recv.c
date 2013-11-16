@@ -22,18 +22,18 @@
 
 #define MAXDATASIZE 80 // max number of bytes we can get at once 
 
-void receive_test(unsigned char msg_in[], int nbytes)
+void process_msg(unsigned char *content, int nbytes, message_t type)
 {   //place test code for parsing received message here
     printf("message received:\n");
+    printf("Length: %d\n", nbytes);
+    printf("Type: %x\n", type);
+    printf("Content: ");
     int i;
     for (i = 0 ; i < nbytes ; i++)
     {   //print message as hex
-        printf("%x", msg_in[i]);
+        printf("%2x ", content[i]);
     }
     printf("\n");
-    printf("\nLength: %d", unpack_int(msg_in + MSG_LEN_POS));
-    printf("\nType: %x", msg_in[MSG_TYPE_POS]);
-    printf("\nContent: %s\n", msg_in + MSG_CONTENT_POS);
 }
 
 // get sockaddr, IPv4 or IPv6:
@@ -48,7 +48,7 @@ void *get_in_addr(struct sockaddr *sa)
 
 int main(int argc, char *argv[])
 {
-	int sockfd, numbytes;  
+	int sockfd;  
 	unsigned char buf[MAXDATASIZE];
 	struct addrinfo hints, *servinfo, *p;
 	int rv;
@@ -98,14 +98,15 @@ int main(int argc, char *argv[])
 
     memset(buf, 0, MAXDATASIZE);
 
-	if ((numbytes = recv(sockfd, buf, MAXDATASIZE, 0)) == -1) {
-	    perror("recv");
-	    exit(1);
-	}
+    unsigned int payload_len;
+    message_t type;
+    unsigned char *payload = NULL;
 
-    receive_test(buf, numbytes);
+    type = recv_msg(sockfd, &payload_len, payload);
+    process_msg(payload, payload_len, type);
 
 	close(sockfd);
+    free(payload);
 
 	return 0;
 }
