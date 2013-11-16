@@ -24,16 +24,40 @@
 
 void process_msg(unsigned char *content, int nbytes, message_t type)
 {   //place test code for parsing received message here
-    printf("message received:\n");
-    printf("Length: %d\n", nbytes);
-    printf("Type: %x\n", type);
-    printf("Content: ");
-    int i;
-    for (i = 0 ; i < nbytes ; i++)
-    {   //print message as hex
-        printf("%2x ", content[i]);
+    printf("recv'd message: ");
+
+    switch(type)
+    {
+        case HANDSHAKE:
+            printf("Handshake from %d\n", unpack_int(content));
+            break;
+        case CHOKE:
+            printf("CHOKE\n");
+            break;
+        case UNCHOKE:
+            printf("UNCHOKE\n");
+            break;
+        case INTERESTED:
+            printf("INTERESTED\n");
+            break;
+        case NOT_INTERESTED:
+            printf("NOT_INTERESTED\n");
+            break;
+        case HAVE:
+            printf("HAVE piece %d\n", unpack_int(content));
+            break;
+        case BITFIELD:
+            printf("BITFIELD (not implemented yet!)\n");
+            break;
+        case REQUEST:
+            printf("REQUEST piece %d\n", unpack_int(content));
+            break;
+        case PIECE:
+            printf("PIECE (not implemented yet!)\n");
+            break;
+        default:
+            break;
     }
-    printf("\n");
 }
 
 // get sockaddr, IPv4 or IPv6:
@@ -49,7 +73,6 @@ void *get_in_addr(struct sockaddr *sa)
 int main(int argc, char *argv[])
 {
 	int sockfd;  
-	unsigned char buf[MAXDATASIZE];
 	struct addrinfo hints, *servinfo, *p;
 	int rv;
 	char s[INET6_ADDRSTRLEN];
@@ -96,17 +119,21 @@ int main(int argc, char *argv[])
 
 	freeaddrinfo(servinfo); // all done with this structure
 
-    memset(buf, 0, MAXDATASIZE);
-
     unsigned int payload_len;
     message_t type;
     unsigned char *payload = NULL;
 
-    type = recv_msg(sockfd, &payload_len, payload);
-    process_msg(payload, payload_len, type);
+    int i;
+    for (i = 0 ; i < 6 ; i++)
+    {
+        type = recv_msg(sockfd, &payload_len, &payload);
+        process_msg(payload, payload_len, type);
+        if (payload != NULL) { free(payload); }      //Don't forget this!!!
+        payload = NULL;
+        printf("\n");
+    }
 
 	close(sockfd);
-    free(payload);
 
 	return 0;
 }
