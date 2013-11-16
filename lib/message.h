@@ -17,6 +17,7 @@
 
 //specific field definitions
 #define PEER_ID_LEN 4                   //#of bytes used to store peer id
+#define PIECE_IDX_LEN 4                 //#of bytes used to store piece idx
 
 enum {
     CHOKE,          //deselect preferred neighbors. No payload.
