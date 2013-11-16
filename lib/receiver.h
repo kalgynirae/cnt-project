@@ -25,7 +25,7 @@
  * place the length of the payload in payload_len
  * place the content of the payload in payload
  */
-message_t recv_msg(int sockfd, unsigned int *payload_len, unsigned char *payload);
+message_t recv_msg(int sockfd, unsigned int *payload_len, unsigned char **payload);
 
 //extract int from payload
 unsigned int unpack_int(unsigned char bytes[4]);

@@ -1,14 +1,14 @@
 #include "receiver.h"
 
 //receive payload of message
-static int recv_payload(int sockfd, unsigned char *payload, int length);
+static int recv_payload(int sockfd, unsigned char **payload, int length);
 
 /* read a message from the socked descriptor sockfd
  * return the type of the message, or MSG_INVALID if an error occurs
  * place the length of the payload in length
  * place the content of the payload in content
  */
-message_t recv_msg(int sockfd, unsigned int *payload_len, unsigned char *payload)
+message_t recv_msg(int sockfd, unsigned int *payload_len, unsigned char **payload)
 {
     int nbytes;     //# bytes received
     unsigned char header[HEADER_SIZE];
@@ -17,9 +17,10 @@ message_t recv_msg(int sockfd, unsigned int *payload_len, unsigned char *payload
         perror("could not recv incoming message header");
     }
 
+
     //is it a handshake?
-    if (nbytes >= HEADER_SIZE && 
-            strncmp((char*)header, HS_GREETING, HEADER_SIZE) != 0)
+    if (nbytes == HEADER_SIZE && 
+            strncmp((char*)header, HS_GREETING, HEADER_SIZE) == 0)
     {
         //recv padding
         char padding[HS_PADDING_LEN];
@@ -30,7 +31,6 @@ message_t recv_msg(int sockfd, unsigned int *payload_len, unsigned char *payload
 
         //get payload (sender id)
         *payload_len = PEER_ID_LEN;
-        payload = malloc(PEER_ID_LEN);
         if (recv_payload(sockfd, payload, PEER_ID_LEN) != PEER_ID_LEN) { 
             return INVALID_MSG; 
         }
@@ -77,13 +77,13 @@ void extract_and_save_piece(unsigned int len, char payload[])
 }
 
 //receive the payload of a message
-static int recv_payload(int sockfd, unsigned char *buf, int length)
+static int recv_payload(int sockfd, unsigned char **buf, int length)
 {
     int nbytes, so_far = 0;
-    buf = malloc(length);
+    *buf = malloc(length);
     while (so_far < length)
     {
-        if ((nbytes = recv(sockfd, buf + so_far, length - so_far, 0)) < 0) {
+        if ((nbytes = recv(sockfd, *buf + so_far, length - so_far, 0)) < 0) {
             perror("could not receive payload of incoming message");
             return so_far;
         }
