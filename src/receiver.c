@@ -17,10 +17,8 @@ message_t recv_msg(int sockfd, unsigned int *payload_len, unsigned char **payloa
         perror("could not recv incoming message header");
     }
 
-
     //is it a handshake?
-    if (nbytes == HEADER_SIZE && 
-            strncmp((char*)header, HS_GREETING, HEADER_SIZE) == 0)
+    if (strncmp((char*)header, HS_GREETING, HEADER_SIZE) == 0)
     {
         //recv padding
         char padding[HS_PADDING_LEN];

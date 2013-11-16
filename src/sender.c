@@ -44,21 +44,22 @@ int send_have(int sock_fd, unsigned int piece_idx)
 {
     unsigned char idx[4];
     pack_int(piece_idx, idx);   //convert index to 4 bytes for sending
-    return norm_send(sock_fd, HAVE, idx, 0);
+    return norm_send(sock_fd, HAVE, idx, PIECE_IDX_LEN);
 }
 
 int send_bitfield(int sock_fd, bitfield_t bitfield)
 {
-    unsigned char *content = malloc(sizeof(bitfield_t));
-    memcpy((void*)content, (void*)bitfield, sizeof(bitfield_t));  //convert bitfield to char[]
-    return norm_send(sock_fd, HAVE, content, 0);
+    int len = sizeof(bitfield_t);
+    unsigned char *content = malloc(len);
+    memcpy((void*)content, (void*)bitfield, len);  //convert bitfield to char[]
+    return norm_send(sock_fd, HAVE, content, len);
 }
 
 int send_request(int sock_fd, unsigned int piece_idx)
 {
     unsigned char idx[4];
     pack_int(piece_idx, idx);   //convert index to 4 bytes for sending
-    return norm_send(sock_fd, REQUEST, idx, 0);
+    return norm_send(sock_fd, REQUEST, idx, PIECE_IDX_LEN);
 }
 
 int send_piece(int sock_fd, unsigned int piece_idx, unsigned char content[])
@@ -88,13 +89,6 @@ int norm_send(int sock_fd,
     if (rval < 0) {
         fprintf(stderr, "send_msg to sock_fd %d failed.\n", sock_fd);
     }
-
-    unsigned char *c;
-    for (c = msg ; c < msg + MSG_TYPE_LEN + MSG_LEN_LEN + content_size ; c++)
-    {
-        printf("%x ", *c);
-    }
-    printf("\n");
 
     return rval;
 }
