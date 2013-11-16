@@ -69,16 +69,39 @@ int file_merge(char* FILENAME, int FS, int PS, int P_ID){
 
 //read the content from a local piece file into buffer
 //return size of content read or a negative number on error
-long read_piece(unsigned int piece_idx, char buffer[])
+int read_piece(unsigned int piece_idx, char** buffer, int PS, int P_ID)
 {
     //convert the piece index into the corresponding file path
-    //read the file into buffer
+	FILE *fpr;//file pointer for reading file
+	char c;//character read from file
+	int FS = 0;//counter to be returned telling the file size
+	*buffer = malloc(PS);//allocate space for buffer equal to the piece size
+	char FILEREAD [20];//name of file piece to be read
+	sprintf(FILEREAD, "\\peer_%d\\piece_%d", P_ID, piece_idx);
+	fpr = fopen(FILEREAD,"r");
+	if(fpr == NULL){
+		printf("ERROR: file piece %d does not exist\n", piece_idx);
+		FS = -1;
+	}else{
+		int i;
+		//read the file into buffer
+		for(i = 0; i < PS; i++){
+			c = getc(fpr);//read bye of piece
+			if(c != EOF){
+				*buffer[i] = c;
+				FS++;
+			}else{//exit loop if end of file is reached
+				break;
+			}
+		}
+	}
+	fclose(fpr);
     //return the size of the content read
-    return 0;
+    return FS;
 }
 
 //get the content from a piece by reading the local piece file
-long write_piece(unsigned int piece_idx, char buffer[])
+int write_piece(unsigned int piece_idx, char** buffer)
 {
     //convert the piece index into the corresponding file path
     //error if file already exists
