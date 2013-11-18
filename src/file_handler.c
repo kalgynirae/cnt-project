@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "file_handler.h"
 
 int file_split(char* FILENAME, int FS, int PS, int P_ID){
@@ -111,5 +112,12 @@ int write_piece(unsigned int piece_idx, unsigned int len, char* buffer)
     //convert the piece index into the corresponding file path
     //error if file already exists
     //create file and write content to file
+    //TODO: replace with real file-reader code
+    printf("write_piece not implemented yet! For now,\n");
+    char s[len + 1];
+    memcpy(s, buffer, len); 
+    s[len] = '\0';
+    printf("piece %d content: %s\n", piece_idx, s);
+    
     return 0;
 }
