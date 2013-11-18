@@ -1,5 +1,5 @@
-
 #include <stdio.h>
+#include <stdlib.h>
 #include "file_handler.h"
 
 int file_split(char* FILENAME, int FS, int PS, int P_ID){
@@ -23,7 +23,7 @@ int file_split(char* FILENAME, int FS, int PS, int P_ID){
 			for(i = 1; i <= PS; i++){//copy piece of file byte by byte
 				c = getc(fpr);//read bye of file
 				if(c != EOF){//copy file byte
-					fprintf(fpw, "%s", c);
+					fprintf(fpw, "%c", c);
 				}else{//exit loop if end of file is reached
 					break;
 				}
@@ -32,6 +32,7 @@ int file_split(char* FILENAME, int FS, int PS, int P_ID){
 		}
 		fclose(fpr);
 	}
+    return 0;
 }
 
 int file_merge(char* FILENAME, int FS, int PS, int P_ID){
@@ -56,7 +57,7 @@ int file_merge(char* FILENAME, int FS, int PS, int P_ID){
 			for(i = 1; i <= PS; i++){//copy piece of file byte by byte
 				c = getc(fpr);//read bye of file
 				if(c != EOF){//copy file byte
-					fprintf(fpw, "%s", c);
+					fprintf(fpw, "%c", c);
 				}else{//exit loop if end of file is reached
 					break;
 				}
@@ -65,6 +66,7 @@ int file_merge(char* FILENAME, int FS, int PS, int P_ID){
 		fclose(fpr);
 	}
 	fclose(fpw);
+    return 0;
 }
 
 //read the content from a local piece file into buffer
