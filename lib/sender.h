@@ -7,6 +7,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include "message.h"
+#include "file_handler.h"
 
 /* helper functions for sending messages
  * All message sending functions take sock_fd,
@@ -42,7 +43,9 @@ int send_bitfield(int sock_fd, bitfield_t bitfield, int bitfield_len);
 /* request piece. Payload: 4-byte index of desired piece */
 int send_request(int sock_fd, unsigned int piece_idx);
 
-/* send content. Payload: 4-byte piece index + content */
-int send_piece(int sock_fd, unsigned int piece_idx, unsigned char content[]);
+/* send content. Payload: 4-byte piece index + content 
+ * send_piece handles the process of loading the appropriate piece
+ */
+int send_piece(int sock_fd, unsigned int piece_idx, int piece_size, int peer_id);
 
 #endif
