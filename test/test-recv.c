@@ -47,7 +47,9 @@ void process_msg(unsigned char *content, int nbytes, message_t type)
             printf("HAVE piece %d\n", unpack_int(content));
             break;
         case BITFIELD:
-            printf("BITFIELD (not implemented yet!)\n");
+            printf("BITFIELD: ");
+            int i;
+            for (i = 0 ; i < 5 ; i++) { printf("%x ", content[i]); }
             break;
         case REQUEST:
             printf("REQUEST piece %d\n", unpack_int(content));
@@ -124,7 +126,7 @@ int main(int argc, char *argv[])
     unsigned char *payload = NULL;
 
     int i;
-    for (i = 0 ; i < 6 ; i++)
+    for (i = 0 ; i < 7 ; i++)
     {
         type = recv_msg(sockfd, &payload_len, &payload);
         process_msg(payload, payload_len, type);

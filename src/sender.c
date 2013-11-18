@@ -47,12 +47,9 @@ int send_have(int sock_fd, unsigned int piece_idx)
     return norm_send(sock_fd, HAVE, idx, PIECE_IDX_LEN);
 }
 
-int send_bitfield(int sock_fd, bitfield_t bitfield)
+int send_bitfield(int sock_fd, bitfield_t bitfield, int bitfield_len)
 {
-    int len = sizeof(bitfield_t);
-    unsigned char *content = malloc(len);
-    memcpy((void*)content, (void*)bitfield, len);  //convert bitfield to char[]
-    return norm_send(sock_fd, HAVE, content, len);
+    return norm_send(sock_fd, BITFIELD, bitfield, bitfield_len);
 }
 
 int send_request(int sock_fd, unsigned int piece_idx)

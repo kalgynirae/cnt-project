@@ -36,6 +36,12 @@ void send_messages(int sock_fd)
     if (send_have(sock_fd, 125) == -1) { perror("send"); }
 
     if (send_request(sock_fd, 294) == -1) { perror("send"); }
+
+    char bitfield[5];
+    bitfield[0] = 0xFF;
+    bitfield[2] = 0xAA;
+    bitfield[4] = 0xFF;
+    if (send_bitfield(sock_fd, bitfield, 5) == -1) { perror("send"); }
 }
 
 void sigchld_handler(int s)
