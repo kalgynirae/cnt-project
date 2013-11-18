@@ -18,9 +18,10 @@ int file_merge(char* FILENAME, int FS, int PS, int P_ID);
  */
 int read_piece(unsigned int piece_idx, char** buffer, int PS, int P_ID);
 
-/* get the content from a piece by reading the local piece file
+/* write the content of a piece to the local piece file
+ * len is the length of the content contained in buffer
  * return amount written on success or negative number on error
  */
-int write_piece(unsigned int piece_idx, char** buffer);
+int write_piece(unsigned int piece_idx, unsigned int len, char* buffer);
 
 #endif
