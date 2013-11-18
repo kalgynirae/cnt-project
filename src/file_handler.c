@@ -18,7 +18,7 @@ int file_split(char* FILENAME, int FS, int PS, int P_ID){
 		printf("File does not exist\n");
 	}else{
 		for(j = 1; j <= (FS/PS); j++){//read each piece of file
-			sprintf(FILEWRITE, "\\peer_%d\\piece_%d", P_ID, j);
+			sprintf(FILEWRITE, "runtime/peer_%d/piece_%d", P_ID, j);
 			fpw = fopen(FILEWRITE,"w");
 			for(i = 1; i <= PS; i++){//copy piece of file byte by byte
 				c = getc(fpr);//read bye of file
