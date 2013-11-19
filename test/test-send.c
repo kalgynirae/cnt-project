@@ -21,6 +21,23 @@
 
 #define BACKLOG 10     // how many pending connections queue will hold
 
+void send_messages(int sock_fd)
+{
+    //if (send_handshake(sock_fd, 1001) == -1) { perror("send"); }
+
+    if (send_choke(sock_fd) == -1) { perror("send"); }
+
+    if (send_unchoke(sock_fd) == -1) { perror("send"); }
+
+    if (send_interested(sock_fd) == -1) { perror("send"); }
+
+    if (send_not_interested(sock_fd) == -1) { perror("send"); }
+
+    if (send_have(sock_fd, 125) == -1) { perror("send"); }
+
+    if (send_request(sock_fd, 294) == -1) { perror("send"); }
+}
+
 void sigchld_handler(int s)
 {
     while(waitpid(-1, NULL, WNOHANG) > 0);
@@ -119,8 +136,7 @@ int main(void)
 
         if (!fork()) { // this is the child process
             close(sockfd); // child doesn't need the listener
-            if (norm_send(new_fd, UNCHOKE, "content", 8) == -1)
-                perror("send");
+            send_messages(new_fd);
             close(new_fd);
             exit(0);
         }

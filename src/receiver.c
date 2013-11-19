@@ -1,56 +1,92 @@
 #include "receiver.h"
 
-//helper methods for use in receiver
-unsigned int unpack_int(char bytes[4]);
+//receive payload of message
+static int recv_payload(int sockfd, unsigned char **payload, int length);
 
-/* Try to parse data received from a message as a handshake
- * If successful, return id of peer who sent handshake
- * Else, return -1
+/* read a message from the socked descriptor sockfd
+ * return the type of the message, or MSG_INVALID if an error occurs
+ * point length to the length of the payload (0 if no payload)
+ * point payload to a malloc'd buffer containng the payload (or NULL if no payload)
+ * remember to free payload after use!!
  */
-int parse_handshake_msg(char message[], int n_bytes)
+message_t recv_msg(int sockfd, unsigned int *payload_len, unsigned char **payload)
 {
-    if (n_bytes != 32 || strncmp(message, "HELLO", 5) != 0)
-    {
-        return -1;
+    int nbytes;     //# bytes received
+    unsigned char header[HEADER_SIZE];
+
+	if ((nbytes = recv(sockfd, header, HEADER_SIZE, 0)) != HEADER_SIZE) {
+        perror("could not recv incoming message header");
     }
-    int i;
-    for (i = 5 ; i < 28 ; i++)
+
+    //is it a handshake?
+    if (strncmp((char*)header, HS_GREETING, HEADER_SIZE) == 0)
     {
-        if (message[i] != 0)
+        //recv padding
+        char padding[HS_PADDING_LEN];
+        if ((nbytes = recv(sockfd, padding, HS_PADDING_LEN, 0)) != HS_PADDING_LEN)
         {
-            return -1;
+            perror("could not recv incoming handshake padding");
         }
+
+        //get payload (sender id)
+        *payload_len = PEER_ID_LEN;
+        if (recv_payload(sockfd, payload, PEER_ID_LEN) != PEER_ID_LEN) { 
+            return INVALID_MSG; 
+        }
+
+        return HANDSHAKE;
     }
-    char sender_id[5];
-    strncpy(sender_id, message + 28, 4);
-    sender_id[4] = '\0';
 
-    return atoi(sender_id);
+    //must be a normal message
+    //extract type field
+    message_t type = header[MSG_TYPE_POS];
+    //extract length subtract size of type field to get payload length
+    *payload_len = unpack_int(header + MSG_LEN_POS) - MSG_TYPE_LEN;
+
+    if (*payload_len == 0)          //no content beyond type field
+    {
+        payload = NULL;
+    }
+    else
+    {
+        recv_payload(sockfd, payload, *payload_len);
+    }
+
+    return type;       //return message type
 }
 
- /*
-  * Try to parse data received from a message as a normal message
-  * return 1 on success, 0 on failure
-  * place parsed message in mess
- */
-int parse_normal_msg(char message[], int n_bytes, struct mess_normal *mess)
-{
-    return -1;
-}
-
-
-/* Check a received BITFIELD message for an interesting piece.
- * Return the index of the first interesting piece, or -1 if none is found.
- * returns -2 if bitfield_msg.type != BITFIELD
- */
-int find_interesting_piece(bitfield_t self_bits, struct mess_normal bitfield_msg)
-{
-    return -1;
-}
-
-unsigned int unpack_int(char bytes[4])
+//extract int from payload
+unsigned int unpack_int(unsigned char bytes[4])
 {
     int i;
     memcpy(&i, bytes, 4);
     return ntohl(i);
+}
+
+//extract bitfield from payload
+bitfield_t unpack_bitfield(unsigned char bytes[1])
+{
+    return 0;   //TODO
+}
+
+//extract and save content from piece payload
+void extract_and_save_piece(unsigned int len, char payload[])
+{
+    return;   //TODO
+}
+
+//receive the payload of a message
+static int recv_payload(int sockfd, unsigned char **buf, int length)
+{
+    int nbytes, so_far = 0;
+    *buf = malloc(length);
+    while (so_far < length)
+    {
+        if ((nbytes = recv(sockfd, *buf + so_far, length - so_far, 0)) < 0) {
+            perror("could not receive payload of incoming message");
+            return so_far;
+        }
+        so_far += nbytes;
+    }
+    return so_far;
 }

@@ -1,31 +1,27 @@
 #include "peer.h"
 
-int peer_handle_data(struct peer_info *peer, char *data, int nbytes,
-                     bitfield_t bitfield)
+int peer_handle_data(struct peer_info *peer, message_t msg_type, 
+        unsigned char *data, int nbytes, bitfield_t bitfield)
 {
-    // incoming normal message. handshake needs to be handled separately
-    // probably need to read in as bytestream, then cast to correct message
-    // struct after checking if first 5 bytes == "HELLO"
-    struct mess_normal msg_in;
-
     int sender;
     if (peer->state == PEER_WAIT_FOR_HANDSHAKE)
     {
         // Transition to bitfield if rcv'd handshake and handshake is valid
-        if ((sender = parse_handshake_msg(data, nbytes)) >= 0)
+        if ((sender = unpack_int(data)) >= 0)
         {
             // Send bitfield
             peer->time_last_message_sent = time(NULL);
             peer->state = PEER_WAIT_FOR_BITFIELD;
         }
     }
-    else if (parse_normal_msg(data, nbytes, &msg_in))
+    else
     {
         // Rcv'd bitfield
         if (peer->state == PEER_WAIT_FOR_BITFIELD
-                && msg_in.type == BITFIELD)
+                && msg_type == BITFIELD)
         {
-            int interesting = find_interesting_piece(bitfield, msg_in);
+            bitfield_t other_bitfield = unpack_bitfield(data);
+            int interesting = find_interesting_piece(bitfield, other_bitfield);
             if (interesting == INCORRECT_MSG_TYPE)
             {
                 fprintf(stderr, "incompatible message type");
@@ -41,6 +37,7 @@ int peer_handle_data(struct peer_info *peer, char *data, int nbytes,
             peer->state = PEER_CHOKED;
         }
     }
+    return 0;
 }
 
 int peer_handle_timeout(struct peer_info *peer)
@@ -72,4 +69,11 @@ int peer_handle_timeout(struct peer_info *peer)
 
         }
     }
+    return 0;
+}
+
+int find_interesting_piece(bitfield_t my_bitfield, bitfield_t other_bitfield)
+{
+    //TODO: bitfield_t will probably need to be a char[]
+    return 0;
 }
