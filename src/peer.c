@@ -40,7 +40,7 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
     return 0;
 }
 
-int peer_handle_timeout(struct peer_info *peer)
+int peer_handle_periodic(struct peer_info *peer)
 {
     // No FD will trigger when the Peer is not connected
     if (peer->state == PEER_NOT_CONNECTED)

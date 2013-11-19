@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
 {
     struct common_cfg cfg;
     struct peer_info *peers = NULL;
-    //bitfield_t bitfield;
+    bitfield_t our_bitfield;
 
     int num_peers;
     int i;
@@ -34,6 +34,9 @@ int main(int argc, char *argv[])
     printf("FileName = %s\n", cfg.file_name);
     printf("FileSize = %d\n", cfg.file_size);
     printf("PieceSize = %d\n", cfg.piece_size);
+
+    // TODO: Pull our peer_id out of argv and pass it to read_peers() so that
+    // we don't make a peer_info for ourself.
 
     peers = read_peers(PEER_CFG_PATH, &num_peers);
 
@@ -95,13 +98,20 @@ int main(int argc, char *argv[])
     /*
      * select() loop
      *
-     * This stuff is basically straight from the Wikipedia page for select()
+     * Each iteration of this loop does the following:
+     *   * calls select()
+     *   * loops through all open sockets and checks with select() whether each
+     *     socket can be read from, and if yes:
+     *       * recv()s from the socket into a buffer
+     *       * figures out which peer the socket belongs to
+     *       * calls peer_handle_data() passing that peer's peer_info
+     *   * calls peer_handle_periodic() for every peer
+     *
+     * A lot of this code is straight from the Wikipedia page for select().
      */
     for (;;)
     {
         read_fds = master;
-
-        peer_n = -1;
 
         // We want to timeout after five seconds of waiting. This has to be
         // reset each time because select() modifies it.
@@ -109,12 +119,11 @@ int main(int argc, char *argv[])
         tv.tv_sec = 5;
         tv.tv_usec = 0;
 
-        // Dunno why this is necessary
+        // Dunno why this is necessary, but we've confirmed that it is.
         memcpy(&read_fds, &master, sizeof(master));
 
         // Call select()
         int nready = select(max_fd + 1, &read_fds, NULL, NULL, &tv);
-        fprintf(stderr, "select() returned, woo!\n");
         if (nready == -1)
         {
             perror("select()");
@@ -124,7 +133,7 @@ int main(int argc, char *argv[])
         /*
          * Loop through sockets (by file descriptor) and see if each is ready
          * to be recv()'d from (or, in the case of the listen_socket_fd,
-         * accept()'d from). If a socket *is* ready, 
+         * accept()'d from).
          */
         for (i = 0; i <= max_fd; i++)
         {
@@ -185,26 +194,26 @@ int main(int argc, char *argv[])
                         buffer[nbytes] = '\0';
                         printf("%s", buffer);
                     }
+
+                    /*
+                     * At this point, `peer_n` is the index of the peer from
+                     * which we have just received data into `buffer`. Or it is
+                     * -1, meaning we did not receive any data from a peer.
+                     */
+                    if (peer_n >= 0)
+                    {
+                        message_t msg_type = NULL; // TODO: fix this.
+                        peer_handle_data(&peers[peer_n], msg_type, buffer,
+                                         nbytes, our_bitfield);
+                    }
                 }
             }
-
-            /*
-             * At this point, `peer_n` is the peer number from which we have
-             * just received data into `buffer`. Or it is -1, meaning we did
-             * not receive any data from a peer.
-             */
-            if (peer_n >= 0)
-            {
-                //TODO make this work? is this going to be used here?
-                //peer_handle_data(&peers[peer_n], buffer, nbytes, bitfield);
-            }
-
         }
 
-        // Do timeout stuff for all peers
+        // Call the periodic handler for every peer
         for (i = 0; i < num_peers; i++)
         {
-            peer_handle_timeout(&peers[i]);
+            peer_handle_periodic(&peers[i]);
         }
     }
     return 0;
