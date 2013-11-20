@@ -19,6 +19,12 @@
 
 int main(int argc, char *argv[])
 {
+    if (argc != 2)
+    {
+        fprintf(stderr, "Usage: %s <peer_id>\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
     struct common_cfg cfg;
     struct peer_info *peers = NULL;
     bitfield_t our_bitfield;
@@ -35,10 +41,13 @@ int main(int argc, char *argv[])
     printf("FileSize = %d\n", cfg.file_size);
     printf("PieceSize = %d\n", cfg.piece_size);
 
-    // TODO: Pull our peer_id out of argv and pass it to read_peers() so that
-    // we don't make a peer_info for ourself.
-
-    peers = read_peers(PEER_CFG_PATH, &num_peers);
+    int our_peer_id = atoi(argv[1]);
+    peers = read_peers(PEER_CFG_PATH, &num_peers, our_peer_id);
+    if (peers == NULL)
+    {
+        fprintf(stderr, "Exiting after read_peers() error.\n");
+        exit(EXIT_FAILURE);
+    }
 
     for (i = 0 ; i < num_peers ; i++)
     {

@@ -42,7 +42,8 @@ struct common_cfg read_cfg(char* cfg_file_name);
 /* read config file and assign array of peer_info structs to result
  * returns number of peers
  */
-struct peer_info* read_peers(char* cfg_file_name, int* num_peers);
+struct peer_info* read_peers(char* cfg_file_name, int* num_peers,
+                             int our_peer_id);
 
 //parse a line of the common config file
 void parse_cfg_line(char *line, struct common_cfg *cfg);
