@@ -38,7 +38,7 @@ int send_have(int sock_fd, unsigned int piece_idx);
 
 /* first message after connection established
  * each bit of bitfield is 0 for a missing piece or 1 for an owned piece*/
-int send_bitfield(int sock_fd, bitfield_t bitfield, int bitfield_len);
+int send_bitfield(int sock_fd, bitfield_t bitfield);
 
 /* request piece. Payload: 4-byte index of desired piece */
 int send_request(int sock_fd, unsigned int piece_idx);

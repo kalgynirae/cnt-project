@@ -1,5 +1,7 @@
 #include "sender.h"
 
+extern int g_bitfield_len;
+
 //helper methods for use within sender.c
 //send a normal message
 int norm_send(int sock_fd, 
@@ -47,9 +49,9 @@ int send_have(int sock_fd, unsigned int piece_idx)
     return norm_send(sock_fd, HAVE, idx, PIECE_IDX_LEN);
 }
 
-int send_bitfield(int sock_fd, bitfield_t bitfield, int bitfield_len)
+int send_bitfield(int sock_fd, bitfield_t bitfield)
 {
-    return norm_send(sock_fd, BITFIELD, bitfield, bitfield_len);
+    return norm_send(sock_fd, BITFIELD, bitfield, g_bitfield_len);
 }
 
 int send_request(int sock_fd, unsigned int piece_idx)
