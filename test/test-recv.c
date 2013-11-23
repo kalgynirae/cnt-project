@@ -13,14 +13,19 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 
+#include "init.h"
 #include "message.h"
 #include "receiver.h"
 
 #include <arpa/inet.h>
 
 #define PORT "3490" // the port client will be connecting to 
+#define COMMON_CFG_PATH "config/Common.cfg"
 
 #define MAXDATASIZE 80 // max number of bytes we can get at once 
+
+//global configuration options
+extern int g_bitfield_len;
 
 void process_msg(unsigned char *content, int nbytes, message_t type)
 {   //place test code for parsing received message here
@@ -49,7 +54,7 @@ void process_msg(unsigned char *content, int nbytes, message_t type)
         case BITFIELD:
             printf("BITFIELD: ");
             int i;
-            for (i = 0 ; i < 5 ; i++) { printf("%x ", content[i]); }
+            for (i = 0 ; i < g_bitfield_len ; i++) { printf("%X ", content[i]); }
             break;
         case REQUEST:
             printf("REQUEST piece %d\n", unpack_int(content));
@@ -75,6 +80,7 @@ void *get_in_addr(struct sockaddr *sa)
 
 int main(int argc, char *argv[])
 {
+    read_cfg(COMMON_CFG_PATH);      //to find bitfield length
 	int sockfd;  
 	struct addrinfo hints, *servinfo, *p;
 	int rv;

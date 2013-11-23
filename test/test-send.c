@@ -16,10 +16,14 @@
 #include <sys/wait.h>
 #include <signal.h>
 #include "sender.h"
+#include "init.h"
 
 #define PORT "3490"  // the port users will be connecting to
+#define COMMON_CFG_PATH "config/Common.cfg"
 
 #define BACKLOG 10     // how many pending connections queue will hold
+
+extern int g_bitfield_len;
 
 void send_messages(int sock_fd)
 {
@@ -37,11 +41,9 @@ void send_messages(int sock_fd)
 
     if (send_request(sock_fd, 294) == -1) { perror("send"); }
 
-    char bitfield[5];
-    bitfield[0] = 0xFF;
-    bitfield[2] = 0xAA;
-    bitfield[4] = 0xFF;
-    if (send_bitfield(sock_fd, bitfield, 5) == -1) { perror("send"); }
+    char bitfield[g_bitfield_len];
+    memset(bitfield, 0xA, g_bitfield_len);
+    if (send_bitfield(sock_fd, (bitfield_t)bitfield) == -1) { perror("send"); }
 
     if (send_piece(sock_fd, 5, 10, 1) == -1) { perror("send"); }
 }
@@ -63,6 +65,7 @@ void *get_in_addr(struct sockaddr *sa)
 
 int main(void)
 {
+    read_cfg(COMMON_CFG_PATH);      //to find bitfield length
     int sockfd, new_fd;  // listen on sock_fd, new connection on new_fd
     struct addrinfo hints, *servinfo, *p;
     struct sockaddr_storage their_addr; // connector's address information
