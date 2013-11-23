@@ -17,6 +17,9 @@
 #define PEER_CFG_PATH "config/PeerInfo.cfg"
 #define RECEIVE_PORT "9007"
 
+//global configuration options
+extern struct common_cfg g_config;
+
 int main(int argc, char *argv[])
 {
     if (argc != 2)
@@ -25,21 +28,21 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
-    struct common_cfg cfg;
     struct peer_info *peers = NULL;
     bitfield_t our_bitfield;
 
     int num_peers;
     int i;
 
-    cfg = read_cfg(COMMON_CFG_PATH);
+    read_cfg(COMMON_CFG_PATH);
 
-    printf("NumberOfPreferredNeighbors = %d\n", cfg.n_preferred_neighbors);
-    printf("UnchokingInterval = %d\n", cfg.unchoke_interval);
-    printf("OptimisticUnchokingInterval = %d\n", cfg.optimistic_unchoke_interval);
-    printf("FileName = %s\n", cfg.file_name);
-    printf("FileSize = %d\n", cfg.file_size);
-    printf("PieceSize = %d\n", cfg.piece_size);
+    printf("NumberOfPreferredNeighbors = %d\n", g_config.n_preferred_neighbors);
+    printf("UnchokingInterval = %d\n", g_config.unchoke_interval);
+    printf("OptimisticUnchokingInterval = %d\n", 
+            g_config.optimistic_unchoke_interval);
+    printf("FileName = %s\n", g_config.file_name);
+    printf("FileSize = %d\n", g_config.file_size);
+    printf("PieceSize = %d\n", g_config.piece_size);
 
     int our_peer_id = atoi(argv[1]);
     peers = read_peers(PEER_CFG_PATH, &num_peers, our_peer_id);

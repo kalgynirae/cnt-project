@@ -37,7 +37,7 @@ struct peer_info
 };
 
 //read config file and return struct containing options
-struct common_cfg read_cfg(char* cfg_file_name);
+void read_cfg(char* cfg_file_name);
 
 /* read config file and assign array of peer_info structs to result
  * returns number of peers

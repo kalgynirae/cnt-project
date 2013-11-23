@@ -1,8 +1,11 @@
 #include "init.h"
 
-struct common_cfg read_cfg(char* cfg_file_name)
+//global configuration options
+struct common_cfg g_config;
+int g_bitfield_len;
+
+void read_cfg(char* cfg_file_name)
 {
-    struct common_cfg cfg;  //config struct to populate and return
     FILE *fp;               //file pointer
     char *line = NULL;      //current line read
     size_t len = 0;         
@@ -12,7 +15,7 @@ struct common_cfg read_cfg(char* cfg_file_name)
         printf("Error opening file");
     } else {
         while ((read = getline(&line, &len, fp)) != -1) {
-            parse_cfg_line(line, &cfg);
+            parse_cfg_line(line, &g_config);
         }
 
         if (line)
@@ -23,8 +26,9 @@ struct common_cfg read_cfg(char* cfg_file_name)
             printf("Error closing file");
         }
     }
-
-    return cfg;
+    g_bitfield_len = g_config.file_size / g_config.piece_size;
+    //add 1 if not an even division to accomodate last partial piece
+    g_bitfield_len += (g_config.file_size % g_config.piece_size == 0) ? 0 : 1;
 }
 
 struct peer_info* read_peers(char* cfg_file_name, int *num_peers,
