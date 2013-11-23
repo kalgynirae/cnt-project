@@ -55,7 +55,8 @@ void process_msg(unsigned char *content, int nbytes, message_t type)
             printf("REQUEST piece %d\n", unpack_int(content));
             break;
         case PIECE:
-            printf("PIECE (not implemented yet!)\n");
+            printf("PIECE \n");
+            extract_and_save_piece(nbytes, content);
             break;
         default:
             break;
@@ -126,7 +127,7 @@ int main(int argc, char *argv[])
     unsigned char *payload = NULL;
 
     int i;
-    for (i = 0 ; i < 7 ; i++)
+    for (i = 0 ; i < 8 ; i++)
     {
         type = recv_msg(sockfd, &payload_len, &payload);
         process_msg(payload, payload_len, type);
