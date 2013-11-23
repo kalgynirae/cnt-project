@@ -67,6 +67,8 @@ int send_piece(int sock_fd, unsigned int piece_idx, int piece_size, int peer_id)
     unsigned char payload[payload_len];
     pack_int(len, payload);     //write piece len to start of payload
     memcpy(payload + PIECE_IDX_LEN, content, len);  //write content after index
+    free(content);
+
     return norm_send(sock_fd, PIECE, payload, payload_len);
 }
 
