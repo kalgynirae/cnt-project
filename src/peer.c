@@ -1,5 +1,12 @@
 #include "peer.h"
 
+extern int g_bitfield_len;
+struct bitfield_seg
+{
+    char byte;          //section of bitfield
+    int idx;            //index of section
+};
+
 int peer_handle_data(struct peer_info *peer, message_t msg_type, 
         unsigned char *data, int nbytes, bitfield_t bitfield)
 {
@@ -40,7 +47,7 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
     return 0;
 }
 
-int peer_handle_timeout(struct peer_info *peer)
+int peer_handle_periodic(struct peer_info *peer)
 {
     // No FD will trigger when the Peer is not connected
     if (peer->state == PEER_NOT_CONNECTED)
@@ -74,6 +81,40 @@ int peer_handle_timeout(struct peer_info *peer)
 
 int find_interesting_piece(bitfield_t my_bitfield, bitfield_t other_bitfield)
 {
-    //TODO: bitfield_t will probably need to be a char[]
-    return 0;
+    //find interesting byte of bitfield
+    int i, j = 0;
+    char interesting;   //pieces in segment other has that I don't
+    struct bitfield_seg all_interesting[g_bitfield_len]; 
+    for (i = 0 ; i < g_bitfield_len ; i++)
+    {
+        interesting = (my_bitfield[i] ^ other_bitfield[i]) & other_bitfield[i];
+        if (interesting != 0)
+        {   //segment has piece of interest. store interesting bits and index
+            all_interesting[j].idx = i;
+            all_interesting[j++].byte = interesting;
+        }
+    }
+
+    if (j == 0) { return -1; }  //nothing interesting
+
+    //randomly select byte
+    struct bitfield_seg segment = all_interesting[random() % j];
+    int bits[8];
+    j = 0;      //number of interesting bits
+    for (i = 0 ; i < 8 ; i++)   //bit pointer
+    {
+        if ((segment.byte >> i) & 0x1)
+        {   //bit is a 1 - interesting!
+            bits[j++] = i;          //save interesting bit position
+        }
+    }
+    //select random bit and map to overall bitfield position
+    return (bits[random() % j] + 8 * segment.idx);
+}
+
+int has_piece(int idx, bitfield_t my_bitfield)
+{
+    char section = my_bitfield[idx / 8];  //byte containing desired bit
+    char mask = 0x1 << (idx % 8);         //mask for desired bit
+    return (section & mask);
 }

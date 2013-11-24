@@ -8,6 +8,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include "message.h"
+#include "file_handler.h"
 
 /* helper functions for receiving messages
  */
@@ -35,6 +36,6 @@ unsigned int unpack_int(unsigned char bytes[4]);
 bitfield_t unpack_bitfield(unsigned char bytes[1]);
 
 //extract and save content from piece payload
-void extract_and_save_piece(unsigned int len, char payload[]);
+void extract_and_save_piece(unsigned int len, unsigned char payload[]);
 
 #endif

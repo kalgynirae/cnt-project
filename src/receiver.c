@@ -70,9 +70,13 @@ bitfield_t unpack_bitfield(unsigned char bytes[1])
 }
 
 //extract and save content from piece payload
-void extract_and_save_piece(unsigned int len, char payload[])
+void extract_and_save_piece(unsigned int len, unsigned char payload[])
 {
-    return;   //TODO
+    unsigned int idx = unpack_int(payload);         //piece index
+    int content_len = len - PIECE_IDX_LEN;          //content length 
+    char *content = (char*)payload + PIECE_IDX_LEN; //ptr to first byte of content
+
+    write_piece(idx, content_len, content);
 }
 
 //receive the payload of a message

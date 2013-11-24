@@ -47,7 +47,7 @@ struct mess_normal {
 };
 
 //payload types
-typedef unsigned long bitfield_t;
+typedef unsigned char * bitfield_t;
 
 /* NOTES
  * When a peer recives a HAVE or BITFIELD message, it sends and INTERESTED 

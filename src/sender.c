@@ -1,5 +1,7 @@
 #include "sender.h"
 
+extern int g_bitfield_len;
+
 //helper methods for use within sender.c
 //send a normal message
 int norm_send(int sock_fd, 
@@ -49,10 +51,7 @@ int send_have(int sock_fd, unsigned int piece_idx)
 
 int send_bitfield(int sock_fd, bitfield_t bitfield)
 {
-    int len = sizeof(bitfield_t);
-    unsigned char *content = malloc(len);
-    memcpy((void*)content, (void*)bitfield, len);  //convert bitfield to char[]
-    return norm_send(sock_fd, HAVE, content, len);
+    return norm_send(sock_fd, BITFIELD, bitfield, g_bitfield_len);
 }
 
 int send_request(int sock_fd, unsigned int piece_idx)
@@ -62,9 +61,17 @@ int send_request(int sock_fd, unsigned int piece_idx)
     return norm_send(sock_fd, REQUEST, idx, PIECE_IDX_LEN);
 }
 
-int send_piece(int sock_fd, unsigned int piece_idx, unsigned char content[])
+int send_piece(int sock_fd, unsigned int piece_idx, int piece_size, int peer_id)
 {
-    return 0;
+    unsigned char *content;
+    int len = read_piece(piece_idx, (char**)&content, piece_size, peer_id);
+    int payload_len = PIECE_IDX_LEN + len;
+    unsigned char payload[payload_len];
+    pack_int(len, payload);     //write piece len to start of payload
+    memcpy(payload + PIECE_IDX_LEN, content, len);  //write content after index
+    free(content);
+
+    return norm_send(sock_fd, PIECE, payload, payload_len);
 }
 
 //helper methods for use within sender.c

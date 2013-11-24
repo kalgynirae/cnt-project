@@ -1,8 +1,11 @@
 #include "init.h"
 
-struct common_cfg read_cfg(char* cfg_file_name)
+//global configuration options
+struct common_cfg g_config;
+int g_bitfield_len;
+
+void read_cfg(char* cfg_file_name)
 {
-    struct common_cfg cfg;  //config struct to populate and return
     FILE *fp;               //file pointer
     char *line = NULL;      //current line read
     size_t len = 0;         
@@ -12,7 +15,7 @@ struct common_cfg read_cfg(char* cfg_file_name)
         printf("Error opening file");
     } else {
         while ((read = getline(&line, &len, fp)) != -1) {
-            parse_cfg_line(line, &cfg);
+            parse_cfg_line(line, &g_config);
         }
 
         if (line)
@@ -23,11 +26,13 @@ struct common_cfg read_cfg(char* cfg_file_name)
             printf("Error closing file");
         }
     }
-
-    return cfg;
+    g_bitfield_len = g_config.file_size / g_config.piece_size;
+    //add 1 if not an even division to accomodate last partial piece
+    g_bitfield_len += (g_config.file_size % g_config.piece_size == 0) ? 0 : 1;
 }
 
-struct peer_info* read_peers(char* cfg_file_name, int *num_peers)
+struct peer_info* read_peers(char* cfg_file_name, int *num_peers,
+                             int our_peer_id)
 {
     struct peer_info *peers;
     int peer_count = 0;        //number of peers in file
@@ -37,22 +42,39 @@ struct peer_info* read_peers(char* cfg_file_name, int *num_peers)
     ssize_t read;
 
     if ((fp = fopen(cfg_file_name, "r")) == NULL) {
-        printf("Error opening file");
+        fprintf(stderr, "read_peers(): Error opening file\n");
     } else {
 
         while ((read = getline(&line, &len, fp)) != -1) {
             peer_count++;    //count number of peers
         }
         rewind(fp);         //start from beginning to read entries
+        peer_count--;       //but we don't count ourself as a peer
         *num_peers = peer_count;
 
         //create peer[] of proper size
         peers = (struct peer_info*)(malloc(sizeof(struct peer_info) * peer_count));
         int i = 0;
+        struct peer_info temp_info;
 
         while ((read = getline(&line, &len, fp)) != -1) {
-            peers[i] = parse_peer_line(line);
-            i++;
+            temp_info = parse_peer_line(line);
+            if (temp_info.peer_id != our_peer_id)
+            {
+                /* If we get to the last line of the file and we haven't found
+                 * our_peer_id yet (if we had, the counter would be one less),
+                 * then error!
+                 */
+                if (i == *num_peers)
+                {
+                    fprintf(stderr, "read_peers(): launched with peer_id=%d "
+                                    "but no such peer found in file\n",
+                            our_peer_id);
+                    return NULL;
+                }
+                peers[i] = temp_info;
+                i++;
+            }
         }
 
         if (line)
@@ -60,7 +82,7 @@ struct peer_info* read_peers(char* cfg_file_name, int *num_peers)
 
         if (fclose(fp) != 0)
         {
-            printf("Error closing file");
+            fprintf(stderr, "read_peers(): Error closing file\n");
         }
     }
 
