@@ -96,7 +96,6 @@ int find_interesting_piece(bitfield_t my_bitfield, bitfield_t other_bitfield)
     }
 
     if (j == 0) { return -1; }  //nothing interesting
-    printf("found %d interesting segments\n", j);
 
     //randomly select byte
     struct bitfield_seg segment = all_interesting[random() % j];
@@ -104,12 +103,11 @@ int find_interesting_piece(bitfield_t my_bitfield, bitfield_t other_bitfield)
     j = 0;      //number of interesting bits
     for (i = 0 ; i < 8 ; i++)   //bit pointer
     {
-        if ((segment.byte >> i) && 0x1 != 0)
+        if ((segment.byte >> i) & 0x1)
         {   //bit is a 1 - interesting!
             bits[j++] = i;          //save interesting bit position
         }
     }
-    printf("found %d interesting bits\n", j);
     //select random bit and map to overall bitfield position
     return (bits[random() % j] + 8 * segment.idx);
 }

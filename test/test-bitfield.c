@@ -73,14 +73,18 @@ void test_interesting(bitfield_t my_bitfield, bitfield_t other_bitfield, int rep
             print_bits(my_bitfield);
             printf(" needs nothing from ");
             print_bits(other_bitfield);
-            printf("\n");
         }
         else
         {
             print_bits(my_bitfield);
-            printf(" wants %d from ", idx);
-            print_bits(other_bitfield);
             printf("\n");
+            int spaces = (9 * g_bitfield_len) - (1 + idx + idx / 8);
+            while (spaces-- > 0) { putchar(' '); }
+            printf("| piece %d is interesting\n", idx);
+            print_bits(other_bitfield);
         }
+        printf("\n");
+        printf("\n");
     }
+    printf("\n");
 }
