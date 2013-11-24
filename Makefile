@@ -12,7 +12,7 @@ build: $(SOURCE_FILES)
 	mkdir -p bin
 	$(CC) $(CFLAGS) -o $(EXECUTABLE) $(SOURCE_FILES) -I $(INCLUDE_DIR)
 
-test: test-send test-recv
+test: test-send test-recv test-bitfield
 
 test-send: $(TEST_SRC) test/test-send.c
 	mkdir -p bin
@@ -21,6 +21,10 @@ test-send: $(TEST_SRC) test/test-send.c
 test-recv: $(TEST_SRC) test/test-recv.c
 	mkdir -p bin
 	$(CC) $(CFLAGS) -o bin/test-recv test/test-recv.c $(TEST_SRC) -I $(INCLUDE_DIR)
+
+test-bitfield: $(TEST_SRC) test/test-bitfield.c
+	mkdir -p bin
+	$(CC) $(CFLAGS) -o bin/test-bitfield test/test-bitfield.c $(TEST_SRC) -I $(INCLUDE_DIR)
 
 clean:
 	rm -r bin

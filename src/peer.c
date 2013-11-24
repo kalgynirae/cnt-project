@@ -82,12 +82,13 @@ int peer_handle_periodic(struct peer_info *peer)
 int find_interesting_piece(bitfield_t my_bitfield, bitfield_t other_bitfield)
 {
     //find interesting byte of bitfield
-    int i, j;
+    int i, j = 0;
     char interesting;   //pieces in segment other has that I don't
     struct bitfield_seg all_interesting[g_bitfield_len]; 
     for (i = 0 ; i < g_bitfield_len ; i++)
     {
-        if ((interesting = (my_bitfield ^ other_bitfield) & other_bitfield) != 0)
+        interesting = (my_bitfield[i] ^ other_bitfield[i]) & other_bitfield[i];
+        if (interesting != 0)
         {   //segment has piece of interest. store interesting bits and index
             all_interesting[j].idx = i;
             all_interesting[j++].byte = interesting;
@@ -95,9 +96,10 @@ int find_interesting_piece(bitfield_t my_bitfield, bitfield_t other_bitfield)
     }
 
     if (j == 0) { return -1; }  //nothing interesting
+    printf("found %d interesting segments\n", j);
 
     //randomly select byte
-    struct bitfield_seg segment = all_interesting(random() % j);
+    struct bitfield_seg segment = all_interesting[random() % j];
     int bits[8];
     j = 0;      //number of interesting bits
     for (i = 0 ; i < 8 ; i++)   //bit pointer
@@ -107,6 +109,7 @@ int find_interesting_piece(bitfield_t my_bitfield, bitfield_t other_bitfield)
             bits[j++] = i;          //save interesting bit position
         }
     }
+    printf("found %d interesting bits\n", j);
     //select random bit and map to overall bitfield position
     return (bits[random() % j] + 8 * segment.idx);
 }
