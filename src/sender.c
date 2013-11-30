@@ -1,5 +1,7 @@
 #include "sender.h"
 
+extern int g_bitfield_len;
+
 //helper methods for use within sender.c
 //send a normal message
 int norm_send(int sock_fd, 
@@ -13,7 +15,7 @@ int send_handshake(int sock_fd, int sender_id)
 {
     unsigned char msg[32];
 
-    strncpy((char*)msg, HS_GREETING, HS_GREETING_LEN);      //prefix with greeting
+    strncpy((char*)msg, HS_GREETING, HEADER_SIZE);      //prefix with greeting
     memset(msg + HS_PADDING_POS, 0, HS_PADDING_LEN); //pad with zeroes
     pack_int(sender_id, msg + HS_ID_POS);    //place sender_id in last 4 bytes
 
@@ -22,42 +24,54 @@ int send_handshake(int sock_fd, int sender_id)
 
 int send_choke(int sock_fd)
 {
-    return 0;
+    return norm_send(sock_fd, CHOKE, NULL, 0);
 }
 
 int send_unchoke(int sock_fd)
 {
-    return 0;
+    return norm_send(sock_fd, UNCHOKE, NULL, 0);
 }
 
 int send_interested(int sock_fd)
 {
-    return 0;
+    return norm_send(sock_fd, INTERESTED, NULL, 0);
 }
 
 int send_not_interested(int sock_fd)
 {
-    return 0;
+    return norm_send(sock_fd, NOT_INTERESTED, NULL, 0);
 }
 
-int send_have(int sock_fd, int piece_idx)
+int send_have(int sock_fd, unsigned int piece_idx)
 {
-    return 0;
+    unsigned char idx[4];
+    pack_int(piece_idx, idx);   //convert index to 4 bytes for sending
+    return norm_send(sock_fd, HAVE, idx, PIECE_IDX_LEN);
 }
 
 int send_bitfield(int sock_fd, bitfield_t bitfield)
 {
-    return 0;
+    return norm_send(sock_fd, BITFIELD, bitfield, g_bitfield_len);
 }
 
-int send_request(int sock_fd, int piece_idx)
+int send_request(int sock_fd, unsigned int piece_idx)
 {
-    return 0;
+    unsigned char idx[4];
+    pack_int(piece_idx, idx);   //convert index to 4 bytes for sending
+    return norm_send(sock_fd, REQUEST, idx, PIECE_IDX_LEN);
 }
 
-int send_piece(int sock_fd, int piece_idx, unsigned char content[])
+int send_piece(int sock_fd, unsigned int piece_idx, int piece_size, int peer_id)
 {
-    return 0;
+    unsigned char *content;
+    int len = read_piece(piece_idx, (char**)&content, piece_size, peer_id);
+    int payload_len = PIECE_IDX_LEN + len;
+    unsigned char payload[payload_len];
+    pack_int(len, payload);     //write piece len to start of payload
+    memcpy(payload + PIECE_IDX_LEN, content, len);  //write content after index
+    free(content);
+
+    return norm_send(sock_fd, PIECE, payload, payload_len);
 }
 
 //helper methods for use within sender.c
@@ -82,13 +96,6 @@ int norm_send(int sock_fd,
     if (rval < 0) {
         fprintf(stderr, "send_msg to sock_fd %d failed.\n", sock_fd);
     }
-
-    unsigned char *c;
-    for (c = msg ; c < msg + MSG_TYPE_LEN + MSG_LEN_LEN + content_size ; c++)
-    {
-        printf("%x ", *c);
-    }
-    printf("\n");
 
     return rval;
 }

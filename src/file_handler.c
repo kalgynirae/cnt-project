@@ -1,5 +1,7 @@
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "file_handler.h"
 
 int file_split(char* FILENAME, int FS, int PS, int P_ID){
@@ -18,12 +20,12 @@ int file_split(char* FILENAME, int FS, int PS, int P_ID){
 		printf("File does not exist\n");
 	}else{
 		for(j = 1; j <= (FS/PS); j++){//read each piece of file
-			sprintf(FILEWRITE, "\\peer_%d\\piece_%d", P_ID, j);
+			sprintf(FILEWRITE, "runtime/peer_%d/piece_%d", P_ID, j);
 			fpw = fopen(FILEWRITE,"w");
 			for(i = 1; i <= PS; i++){//copy piece of file byte by byte
 				c = getc(fpr);//read bye of file
 				if(c != EOF){//copy file byte
-					fprintf(fpw, "%s", c);
+					fprintf(fpw, "%c", c);
 				}else{//exit loop if end of file is reached
 					break;
 				}
@@ -32,6 +34,7 @@ int file_split(char* FILENAME, int FS, int PS, int P_ID){
 		}
 		fclose(fpr);
 	}
+    return 0;
 }
 
 int file_merge(char* FILENAME, int FS, int PS, int P_ID){
@@ -47,7 +50,7 @@ int file_merge(char* FILENAME, int FS, int PS, int P_ID){
 	int i, j;
 	fpw = fopen(FILENAME,"w");
 	for(j = 1; j <= (FS/PS); j++){//write each piece of file
-		sprintf(FILEREAD, "\\peer_%d\\piece_%d", P_ID, j);
+		sprintf(FILEREAD, "runtime/peer_%d/piece_%d", P_ID, j);
 		fpr = fopen(FILEREAD,"r");
 		if(fpr == NULL){
 			printf("ERROR: file piece %d does not exist\n", j);
@@ -56,7 +59,7 @@ int file_merge(char* FILENAME, int FS, int PS, int P_ID){
 			for(i = 1; i <= PS; i++){//copy piece of file byte by byte
 				c = getc(fpr);//read bye of file
 				if(c != EOF){//copy file byte
-					fprintf(fpw, "%s", c);
+					fprintf(fpw, "%c", c);
 				}else{//exit loop if end of file is reached
 					break;
 				}
@@ -65,6 +68,7 @@ int file_merge(char* FILENAME, int FS, int PS, int P_ID){
 		fclose(fpr);
 	}
 	fclose(fpw);
+    return 0;
 }
 
 //read the content from a local piece file into buffer
@@ -77,7 +81,7 @@ int read_piece(unsigned int piece_idx, char** buffer, int PS, int P_ID)
 	int FS = 0;//counter to be returned telling the file size
 	*buffer = malloc(PS);//allocate space for buffer equal to the piece size
 	char FILEREAD [20];//name of file piece to be read
-	sprintf(FILEREAD, "\\peer_%d\\piece_%d", P_ID, piece_idx);
+	sprintf(FILEREAD, "runtime/peer_%d/piece_%d", P_ID, piece_idx);
 	fpr = fopen(FILEREAD,"r");
 	if(fpr == NULL){
 		printf("ERROR: file piece %d does not exist\n", piece_idx);
@@ -88,24 +92,34 @@ int read_piece(unsigned int piece_idx, char** buffer, int PS, int P_ID)
 		for(i = 0; i < PS; i++){
 			c = getc(fpr);//read bye of piece
 			if(c != EOF){
-				*buffer[i] = c;
+				(*buffer)[i] = c;
 				FS++;
 			}else{//exit loop if end of file is reached
 				break;
 			}
 		}
 	}
+    
 	fclose(fpr);
     //return the size of the content read
     return FS;
 }
 
-//get the content from a piece by reading the local piece file
-int write_piece(unsigned int piece_idx, char** buffer)
+/* write the content of a piece to the local piece file
+ * len is the length of the content contained in buffer
+ * return amount written on success or negative number on error
+ */
+int write_piece(unsigned int piece_idx, unsigned int len, char* buffer)
 {
     //convert the piece index into the corresponding file path
     //error if file already exists
     //create file and write content to file
+    //TODO: replace with real file-reader code
+    printf("write_piece not implemented yet! For now,\n");
+    char s[len + 1];
+    memcpy(s, buffer, len); 
+    s[len] = '\0';
+    printf("piece %d content: %s\n", piece_idx, s);
+    
     return 0;
 }
-

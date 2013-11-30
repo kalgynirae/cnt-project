@@ -2,35 +2,40 @@
 #define _receiver_h
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
 #include "message.h"
+#include "file_handler.h"
 
-/* helper functions for sending messages
+/* helper functions for receiving messages
  */
+
+//minimum number of bytes to recieve at a time
+#define MIN_RECV_SIZE 32
+#define RECV_FAIL -1
 
 //error codes
 #define NO_INTERESTING_PIECE -1
 #define INCORRECT_MSG_TYPE -2
 
-/* Try to parse data received from a message as a handshake
- * If successful, return id of peer who sent handshake
- * Else, return -1
+/* read a message from the socked descriptor sockfd
+ * return the type of the message, or MSG_INVALID if an error occurs
+ * point length to the length of the payload (0 if no payload)
+ * point payload to a malloc'd buffer containng the payload (or NULL if no payload)
+ * remember to free payload after use!!
  */
-int parse_handshake_msg(char message[], int n_bytes);
+message_t recv_msg(int sockfd, unsigned int *payload_len, unsigned char **payload);
 
- /*
-  * Try to parse data received from a message as a normal message
-  * return 1 on success, 0 on failure
-  * place parsed message in mess
- */
-int parse_normal_msg(char message[], int n_bytes, struct mess_normal *mess);
+//extract int from payload
+unsigned int unpack_int(unsigned char bytes[4]);
 
+//extract bitfield from payload
+bitfield_t unpack_bitfield(unsigned char bytes[1]);
 
-/* Check a received BITFIELD message for an interesting piece.
- * Return the index of the first interesting piece, or -1 if none is found.
- * returns -2 if bitfield_msg.type != BITFIELD
- */
-int find_interesting_piece(bitfield_t self_bits, struct mess_normal bitfield_msg);
-
+//extract and save content from piece payload
+void extract_and_save_piece(unsigned int len, unsigned char payload[]);
 
 #endif

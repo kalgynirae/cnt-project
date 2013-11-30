@@ -1,31 +1,34 @@
 #include "peer.h"
 
-int peer_handle_data(struct peer_info *peer, char *data, int nbytes,
-                     bitfield_t bitfield)
+extern int g_bitfield_len;
+struct bitfield_seg
 {
-    // incoming normal message. handshake needs to be handled separately
-    // probably need to read in as bytestream, then cast to correct message
-    // struct after checking if first 5 bytes == "HELLO"
-    struct mess_normal msg_in;
+    char byte;          //section of bitfield
+    int idx;            //index of section
+};
 
+int peer_handle_data(struct peer_info *peer, message_t msg_type, 
+        unsigned char *data, int nbytes, bitfield_t bitfield)
+{
     int sender;
     if (peer->state == PEER_WAIT_FOR_HANDSHAKE)
     {
         // Transition to bitfield if rcv'd handshake and handshake is valid
-        if ((sender = parse_handshake_msg(data, nbytes)) >= 0)
+        if ((sender = unpack_int(data)) >= 0)
         {
             // Send bitfield
             peer->time_last_message_sent = time(NULL);
             peer->state = PEER_WAIT_FOR_BITFIELD;
         }
     }
-    else if (parse_normal_msg(data, nbytes, &msg_in))
+    else
     {
         // Rcv'd bitfield
         if (peer->state == PEER_WAIT_FOR_BITFIELD
-                && msg_in.type == BITFIELD)
+                && msg_type == BITFIELD)
         {
-            int interesting = find_interesting_piece(bitfield, msg_in);
+            bitfield_t other_bitfield = unpack_bitfield(data);
+            int interesting = find_interesting_piece(bitfield, other_bitfield);
             if (interesting == INCORRECT_MSG_TYPE)
             {
                 fprintf(stderr, "incompatible message type");
@@ -41,9 +44,10 @@ int peer_handle_data(struct peer_info *peer, char *data, int nbytes,
             peer->state = PEER_CHOKED;
         }
     }
+    return 0;
 }
 
-int peer_handle_timeout(struct peer_info *peer)
+int peer_handle_periodic(struct peer_info *peer)
 {
     // No FD will trigger when the Peer is not connected
     if (peer->state == PEER_NOT_CONNECTED)
@@ -72,4 +76,45 @@ int peer_handle_timeout(struct peer_info *peer)
 
         }
     }
+    return 0;
+}
+
+int find_interesting_piece(bitfield_t my_bitfield, bitfield_t other_bitfield)
+{
+    //find interesting byte of bitfield
+    int i, j = 0;
+    char interesting;   //pieces in segment other has that I don't
+    struct bitfield_seg all_interesting[g_bitfield_len]; 
+    for (i = 0 ; i < g_bitfield_len ; i++)
+    {
+        interesting = (my_bitfield[i] ^ other_bitfield[i]) & other_bitfield[i];
+        if (interesting != 0)
+        {   //segment has piece of interest. store interesting bits and index
+            all_interesting[j].idx = i;
+            all_interesting[j++].byte = interesting;
+        }
+    }
+
+    if (j == 0) { return -1; }  //nothing interesting
+
+    //randomly select byte
+    struct bitfield_seg segment = all_interesting[random() % j];
+    int bits[8];
+    j = 0;      //number of interesting bits
+    for (i = 0 ; i < 8 ; i++)   //bit pointer
+    {
+        if ((segment.byte >> i) & 0x1)
+        {   //bit is a 1 - interesting!
+            bits[j++] = i;          //save interesting bit position
+        }
+    }
+    //select random bit and map to overall bitfield position
+    return (bits[random() % j] + 8 * segment.idx);
+}
+
+int has_piece(int idx, bitfield_t my_bitfield)
+{
+    char section = my_bitfield[idx / 8];  //byte containing desired bit
+    char mask = 0x1 << (idx % 8);         //mask for desired bit
+    return (section & mask);
 }
