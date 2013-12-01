@@ -1,6 +1,7 @@
 #include "peer.h"
 
 extern int g_bitfield_len;
+struct common_cfg g_config;
 struct bitfield_seg
 {
     char byte;          //section of bitfield
@@ -114,7 +115,8 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
         }
         else if (msg_type == REQUEST)
         {
-            // send piece
+            unsigned int requested_idx = unpack_int(payload);
+            send_piece(peer->socket_fd, requested_idx, g_config.piece_size, peer->peer_id);
         }
         else
         {
