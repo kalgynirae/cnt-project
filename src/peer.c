@@ -10,7 +10,7 @@ struct bitfield_seg
 // TODO: add log function calls everywhere
 int peer_handle_data(struct peer_info *peer, message_t msg_type, 
         unsigned char *payload, int nbytes, bitfield_t our_bitfield,
-        struct peer_info *peers, int num_peers)
+        struct peer_info *peers, int num_peers, unsigned int *requested_peers)
 {
     int sender;
     if (msg_type == HAVE)
@@ -87,8 +87,10 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
             send_request(peer->socket_fd, piece_idx);
             // send haves to other peers
             int i;
-            for (i = 0; i++; i < num_peers
-
+            for (i = 0; i++; i < num_peers)
+            {
+                // TODO: send have
+            }
         }
         else if (msg_type == REQUEST)
         {
