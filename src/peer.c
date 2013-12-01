@@ -8,24 +8,36 @@ struct bitfield_seg
 };
 
 int peer_handle_data(struct peer_info *peer, message_t msg_type, 
-        unsigned char *data, int nbytes, bitfield_t our_bitfield)
+        unsigned char *payload, int nbytes, bitfield_t our_bitfield)
 {
     int sender;
     if (msg_type == HAVE)
     {
-        bitfield_t other_bitfield = unpack_bitfield(data);
-        peer->bitfield = other_bitfield; // TODO: figure out if this causes memory leaks
-        bitfield_t other_bitfield = unpack_have(
-        // send not/interested back
+        // update peer->bitfield based on the HAVE received
+        unsigned int piece_idx = unpack_int(payload);
+        peer->bitfield[piece_idx] = 1; // TODO: figure out how to index bitfield bits
+        // send out not/interesting
+        int interesting = find_interesting_piece(our_bitfield, other_bitfield);
+        if (interesting == INCORRECT_MSG_TYPE)
+        {
+            fprintf(stderr, "incompatible message type");
+        }
+        else if (interesting == NO_INTERESTING_PIECE)
+        {
+            send_not_interested(peer->socket_fd);
+        }
+        else
+        {
+            send_interested(peer->socket_fd);
+        }
     }
     else if (msg_type == NOT_INTERESTED || msg_type == INTERESTED)
     {
         // As far as we can tell, we should do nothing here
     }
     else if (peer->state == PEER_WAIT_FOR_HANDSHAKE && msg_type == HANDSHAKE)
-    {
-        // Transition to bitfield if rcv'd handshake and handshake is valid
-        if ((sender = unpack_int(data)) >= 0)
+    {   // Transition to bitfield if rcv'd handshake and handshake is valid
+        if ((sender = unpack_int(payload)) >= 0)
         {
             // Send bitfield
             peer->time_last_message_sent = time(NULL);
@@ -34,8 +46,10 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
     }
     else if (peer->state == PEER_WAIT_FOR_BITFIELD && msg_type == BITFIELD)
     {
-        bitfield_t other_bitfield = unpack_bitfield(data);
+        // update out_bitfield
+        bitfield_t other_bitfield = unpack_bitfield(payload);
         peer->bitfield = other_bitfield; // TODO: figure out if this causes memory leaks
+        // send out not/interesting
         int interesting = find_interesting_piece(our_bitfield, other_bitfield);
         if (interesting == INCORRECT_MSG_TYPE)
         {
