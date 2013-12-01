@@ -197,3 +197,9 @@ int has_piece(int idx, bitfield_t my_bitfield)
     char mask = 0x1 << (idx % 8);         //mask for desired bit
     return (section & mask);
 }
+
+int bitfield_get(bitfield_t bitfield, int idx)
+{
+    // TODO: finish this function, Ryan
+    return 0;
+}
