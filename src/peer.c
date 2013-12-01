@@ -4,11 +4,13 @@ extern int g_bitfield_len;
 struct bitfield_seg
 {
     char byte;          //section of bitfield
-    int idx;            //index of section
+    int idx;            //index of sectiongg
 };
 
+// TODO: add log function calls everywhere
 int peer_handle_data(struct peer_info *peer, message_t msg_type, 
-        unsigned char *payload, int nbytes, bitfield_t our_bitfield)
+        unsigned char *payload, int nbytes, bitfield_t our_bitfield,
+        struct peer_info *peers, int num_peers)
 {
     int sender;
     if (msg_type == HAVE)
@@ -39,7 +41,7 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
     {   // Transition to bitfield if rcv'd handshake and handshake is valid
         if ((sender = unpack_int(payload)) >= 0)
         {
-            // Send bitfield
+            send_bitfield(peer->socket_fd, our_bitfield);
             peer->time_last_message_sent = time(NULL);
             peer->state = PEER_WAIT_FOR_BITFIELD;
         }
@@ -74,8 +76,19 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
         }
         else if (msg_type == PIECE)
         {
+            // write the payload to disc
+            unsigned int piece_idx = unpack_int(payload); // TODO: does this break?
+            if (write_piece(piece_idx, payload[4], nbytes) <= 0)
+            {
+                fprintf(stderr, "file piece not written");
+            }
             // send new request
+            unsigned int next_idx = 0; // TODO: find the next needed piece
+            send_request(peer->socket_fd, piece_idx);
             // send haves to other peers
+            int i;
+            for (i = 0; i++; i < num_peers
+
         }
         else if (msg_type == REQUEST)
         {

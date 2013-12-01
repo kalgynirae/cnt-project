@@ -216,7 +216,7 @@ int main(int argc, char *argv[])
                     {
                         message_t msg_type = NULL; // TODO: fix this.
                         peer_handle_data(&peers[peer_n], msg_type, buffer,
-                                         nbytes, our_bitfield);
+                                         nbytes, our_bitfield, peers, num_peers);
                     }
                 }
             }
