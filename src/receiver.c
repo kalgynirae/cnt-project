@@ -1,15 +1,12 @@
 #include "receiver.h"
 
-//receive payload of message
-static int recv_payload(int sockfd, unsigned char **payload, int length);
-
 /* read a message from the socked descriptor sockfd
  * return the type of the message, or MSG_INVALID if an error occurs
  * point length to the length of the payload (0 if no payload)
- * point payload to a malloc'd buffer containng the payload (or NULL if no payload)
- * remember to free payload after use!!
+ * read the payload into the supplied buffer
  */
-message_t recv_msg(int sockfd, unsigned int *payload_len, unsigned char **payload)
+message_t recv_msg(int sockfd, unsigned int *payload_len,
+                   unsigned char *payload)
 {
     int nbytes;     //# bytes received
     unsigned char header[HEADER_SIZE];
@@ -80,13 +77,12 @@ void extract_and_save_piece(unsigned int len, unsigned char payload[])
 }
 
 //receive the payload of a message
-static int recv_payload(int sockfd, unsigned char **buf, int length)
+int recv_payload(int sockfd, unsigned char *buf, int length)
 {
     int nbytes, so_far = 0;
-    *buf = malloc(length);
     while (so_far < length)
     {
-        if ((nbytes = recv(sockfd, *buf + so_far, length - so_far, 0)) < 0) {
+        if ((nbytes = recv(sockfd, buf + so_far, length - so_far, 0)) < 0) {
             perror("could not receive payload of incoming message");
             return so_far;
         }

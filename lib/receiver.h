@@ -27,7 +27,10 @@
  * point payload to a malloc'd buffer containng the payload (or NULL if no payload)
  * remember to free payload after use!!
  */
-message_t recv_msg(int sockfd, unsigned int *payload_len, unsigned char **payload);
+message_t recv_msg(int sockfd, unsigned int *payload_len, unsigned char *payload);
+
+//receive the payload of a message
+int recv_payload(int sockfd, unsigned char *buf, int length);
 
 //extract int from payload
 unsigned int unpack_int(unsigned char bytes[4]);

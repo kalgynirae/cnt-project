@@ -100,9 +100,8 @@ int main(int argc, char *argv[])
     int max_fd = listen_socket_fd;
 
     // Allocate a buffer to store data read from socket
-    char buffer[BUFSIZ];
-    //number of bytes read
-    int nbytes;
+    unsigned char payload[BUFSIZ];
+    int payload_len;
 
     // Var for storing the number of the peer each time we receive data
     int peer_n;
@@ -187,36 +186,24 @@ int main(int argc, char *argv[])
                         peer_n = -1;
                     }
 
-                    // This is not the listening socket, so we'll receive data
-                    // from it and print it.
-                    nbytes = recv(i, buffer, sizeof(buffer), 0);
-                    if (nbytes <= 0)
-                    {
-                        if (nbytes != 0)
-                        {
-                            perror("recv()");
-                            exit(EXIT_FAILURE);
-                        }
-                        close(i);
-                        FD_CLR(i, &master);
-                    }
-                    else
-                    {
-                        // Print the data
-                        buffer[nbytes] = '\0';
-                        printf("%s", buffer);
-                    }
-
                     /*
                      * At this point, `peer_n` is the index of the peer from
-                     * which we have just received data into `buffer`. Or it is
-                     * -1, meaning we did not receive any data from a peer.
+                     * which we are about to receive a message. Or it is -1,
+                     * meaning we did not receive data from a peer.
                      */
                     if (peer_n >= 0)
                     {
-                        message_t msg_type = NULL; // TODO: fix this.
-                        peer_handle_data(&peers[peer_n], msg_type, buffer,
-                                         nbytes, our_bitfield, peers,
+                        // This is not the listening socket, so we'll receive
+                        // data from it and print it.
+                        message_t type = recv_msg(i, &payload_len, payload);
+                        if (type == INVALID_MSG)
+                        {
+                            fprintf(stderr, "recv_msg() failed\n");
+                            break; // Move on to the next socket
+                        }
+
+                        peer_handle_data(&peers[peer_n], type, payload,
+                                         payload_len, our_bitfield, peers,
                                          num_peers);
                     }
                 }
