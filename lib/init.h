@@ -35,6 +35,7 @@ struct peer_info
     int socket_fd;      // descriptor of open socket for sending to peer
     int time_last_message_sent; // time in seconds since THE EPOCH, using time()
     bitfield_t *bitfield;
+    unsigned int requested;     // piece index requested from this peer
 };
 
 // read config file and return struct containing options

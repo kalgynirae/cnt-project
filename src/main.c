@@ -107,9 +107,6 @@ int main(int argc, char *argv[])
     // Var for storing the number of the peer each time we receive data
     int peer_n;
 
-    // Array for storing which piece we have asked each peer for
-    unsigned int requested_pieces[num_peers];
-
     /*
      * select() loop
      *
@@ -220,7 +217,7 @@ int main(int argc, char *argv[])
                         message_t msg_type = NULL; // TODO: fix this.
                         peer_handle_data(&peers[peer_n], msg_type, buffer,
                                          nbytes, our_bitfield, peers,
-                                         num_peers, requested_pieces);
+                                         num_peers);
                     }
                 }
             }

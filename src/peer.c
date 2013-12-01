@@ -10,7 +10,7 @@ struct bitfield_seg
 // TODO: add log function calls everywhere
 int peer_handle_data(struct peer_info *peer, message_t msg_type, 
         unsigned char *payload, int nbytes, bitfield_t our_bitfield,
-        struct peer_info *peers, int num_peers, unsigned int *requested_peers)
+        struct peer_info *peers, int num_peers)
 {
     int sender;
     if (msg_type == HAVE)
@@ -83,13 +83,33 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
                 fprintf(stderr, "file piece not written");
             }
             // send new request
-            unsigned int next_idx = 0; // TODO: find the next needed piece
-            send_request(peer->socket_fd, piece_idx);
-            // send haves to other peers
-            int i;
-            for (i = 0; i++; i < num_peers)
+            int i; // counter for everything in this branch
+            unsigned int next_idx;
+            for (;;)
             {
-                // TODO: send have
+                unsigned int rand_idx = rand() % (nbytes*8);
+                if ((bitfield_get(peer->bitfield, rand_idx) == 1) && // They have it
+                        (bitfield_get(our_bitfield, rand_idx) == 0)) // We don't have it
+                        
+                {
+                    for (i = 0; i < num_peers; i++)
+                    {
+                        if (peers[i].requested == rand_idx) // We have asked for it
+                        {
+                            break;
+                        }
+                    }
+                    if (i == num_peers) // Oh good we haven't asked for it
+                    {
+                        next_idx = rand_idx;
+                    }
+                }
+            }
+            send_request(peer->socket_fd, next_idx);
+            // send haves to all peers
+            for (i = 0; i < num_peers; i++)
+            {
+                send_have(peers[i].socket_fd, piece_idx);
             }
         }
         else if (msg_type == REQUEST)
