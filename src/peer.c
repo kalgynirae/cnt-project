@@ -8,17 +8,19 @@ struct bitfield_seg
 };
 
 int peer_handle_data(struct peer_info *peer, message_t msg_type, 
-        unsigned char *data, int nbytes, bitfield_t bitfield)
+        unsigned char *data, int nbytes, bitfield_t our_bitfield)
 {
     int sender;
     if (msg_type == HAVE)
     {
-        // update bitfield
+        bitfield_t other_bitfield = unpack_bitfield(data);
+        peer->bitfield = other_bitfield; // TODO: figure out if this causes memory leaks
+        bitfield_t other_bitfield = unpack_have(
         // send not/interested back
     }
     else if (msg_type == NOT_INTERESTED || msg_type == INTERESTED)
     {
-        // unclear what to do here, most likely nothing
+        // As far as we can tell, we should do nothing here
     }
     else if (peer->state == PEER_WAIT_FOR_HANDSHAKE && msg_type == HANDSHAKE)
     {
@@ -33,19 +35,20 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
     else if (peer->state == PEER_WAIT_FOR_BITFIELD && msg_type == BITFIELD)
     {
         bitfield_t other_bitfield = unpack_bitfield(data);
-        int interesting = find_interesting_piece(bitfield, other_bitfield);
+        peer->bitfield = other_bitfield; // TODO: figure out if this causes memory leaks
+        int interesting = find_interesting_piece(our_bitfield, other_bitfield);
         if (interesting == INCORRECT_MSG_TYPE)
         {
             fprintf(stderr, "incompatible message type");
         }
         else if (interesting == NO_INTERESTING_PIECE)
         {
-            // Send not interested
+            send_not_interested(peer->socket_fd);
             peer->state = PEER_CHOKED;
         }
         else
         {
-            // Send interested
+            send_interested(peer->socket_fd);
             peer->state = PEER_CHOKED;
         }
     }
@@ -110,12 +113,14 @@ int peer_handle_periodic(struct peer_info *peer)
     }
     else if (peer->state == PEER_CHOKED)
     {
+        // Calculate new preferred peers
         if (0/*selected_as_preferred_peer*/)
         {
             // send choke to weakest peer
             // send unchoke
         }
-        else if (0/*selected_as_optimistic_peer*/)
+        // Calculate new optimistic peer
+        if (0/*selected_as_optimistic_peer*/)
         {
             // send choke to weakest peer
             // send unchoke
