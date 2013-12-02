@@ -12,6 +12,7 @@
 #include "peer_log.h"
 #include "socket.h"
 #include "peer.h"
+#include "peer_log.h"
 
 #define COMMON_CFG_PATH "config/Common.cfg"
 #define PEER_CFG_PATH "config/PeerInfo.cfg"
@@ -72,10 +73,10 @@ int main(int argc, char *argv[])
     log_change_preferred(1000, 3, preferred);
     log_optimistic_unchoke(1000, 1001);
     log_unchoked_by(1000, 1001);
-    log_recieve_choke(1000, 1001);
-    log_recieved_have(1000, 1001);
-    log_recieved_interested(1000, 1001);
-    log_recieved_not_interested(1000, 1001);
+    log_receive_choke(1000, 1001);
+    log_received_have(1000, 1001);
+    log_received_interested(1000, 1001);
+    log_received_not_interested(1000, 1001);
     log_downloaded_piece(1000, 1001);
     log_downloaded_file(1000);
 

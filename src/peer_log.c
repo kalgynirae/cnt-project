@@ -51,57 +51,57 @@ void log_optimistic_unchoke(int peer, int unchoked_peer)
     write_log(peer, log);
 }
 
-//reciever got UNCHOKE message from sender
-void log_unchoked_by(int reciever, int sender)
+//receiver got UNCHOKE message from sender
+void log_unchoked_by(int receiver, int sender)
 {
     char log[80];
 
-    snprintf(log, 80, "Peer %d is unchoked by %d\n", reciever, sender);
+    snprintf(log, 80, "Peer %d is unchoked by %d\n", receiver, sender);
 
-    write_log(reciever, log);
+    write_log(receiver, log);
 }
 
-//reciever got CHOKE message from sender
-void log_recieve_choke(int reciever, int sender)
+//receiver got CHOKE message from sender
+void log_receive_choke(int receiver, int sender)
 {
     char log[80];
 
-    snprintf(log, 80, "Peer %d is choked by %d\n", reciever, sender);
+    snprintf(log, 80, "Peer %d is choked by %d\n", receiver, sender);
 
-    write_log(reciever, log);
+    write_log(receiver, log);
 }
 
-//reciever got HAVE message from sender
-void log_recieved_have(int reciever, int sender)
+//receiver got HAVE message from sender
+void log_received_have(int receiver, int sender)
 {
     char log[80];
 
-    snprintf(log, 80, "Peer %d recieved 'have' message from %d\n",
-            reciever, sender);
+    snprintf(log, 80, "Peer %d received 'have' message from %d\n",
+            receiver, sender);
 
-    write_log(reciever, log);
+    write_log(receiver, log);
 }
 
-//reciever got INTERESTED message from sender
-void log_recieved_interested(int reciever, int sender)
+//receiver got INTERESTED message from sender
+void log_received_interested(int receiver, int sender)
 {
     char log[80];
 
-    snprintf(log, 80, "Peer %d recieved 'interested' message from %d\n",
-            reciever, sender);
+    snprintf(log, 80, "Peer %d received 'interested' message from %d\n",
+            receiver, sender);
 
-    write_log(reciever, log);
+    write_log(receiver, log);
 }
 
-//reciever got NOT_INTERESTED message from sender
-void log_recieved_not_interested(int reciever, int sender)
+//receiver got NOT_INTERESTED message from sender
+void log_received_not_interested(int receiver, int sender)
 {
     char log[80];
 
-    snprintf(log, 80, "Peer %d recieved 'not interested' message from %d\n",
-            reciever, sender);
+    snprintf(log, 80, "Peer %d received 'not interested' message from %d\n",
+            receiver, sender);
 
-    write_log(reciever, log);
+    write_log(receiver, log);
 }
 
 //peer has finished downloading piece
