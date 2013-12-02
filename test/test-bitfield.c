@@ -3,6 +3,7 @@
 void print_bits(bitfield_t bitfield);
 void test_bit(int idx, bitfield_t bitfield);
 void test_interesting(bitfield_t my_bitfield, bitfield_t other_bitfield, int reps);
+void test_set(int idx, bitfield_t bitfield);
 
 extern int g_bitfield_len;
 
@@ -27,7 +28,14 @@ int main()
     test_bit(16, b2);
     test_bit(23, b1);
 
-    printf("--------------------Testing has_piece--------------------\n");
+    printf("--------------------Testing set_bit--------------------\n");
+    test_set(0, b1);
+    test_set(1, b1);
+    test_set(2, b1);
+    test_set(7, b1);
+    test_set(16, b1);
+    test_set(23, b1);
+    printf("--------------------Testing find interesting--------------------\n");
     printf("should randomly select different pieces\n");
     test_interesting(b1, b2, 4);
     test_interesting(b2, b1, 4);
@@ -57,11 +65,25 @@ void test_bit(int idx, bitfield_t bitfield)
     {
         printf(" has piece %d\n", idx);
     }
-    else
+    else if (!has_piece(idx, bitfield))
     {
         printf(" doesn't have piece %d\n", idx);
     }
+    else
+    {
+        printf("ERROR");
+    }
 }
+
+void test_set(int idx, bitfield_t bitfield)
+{
+    printf("Before:\n");
+    test_bit(idx, bitfield);
+    bitfield_set(bitfield, idx);
+    printf("After setting %d:\n", idx);
+    test_bit(idx, bitfield);
+}
+
 
 void test_interesting(bitfield_t my_bitfield, bitfield_t other_bitfield, int reps)
 {
