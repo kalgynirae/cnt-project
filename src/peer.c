@@ -19,7 +19,7 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
         unsigned int piece_idx = unpack_int(payload);
         bitfield_set(peer->bitfield, piece_idx);
         // send out not/interesting
-        int interesting = find_interesting_piece(our_bitfield, other_bitfield);
+        int interesting = find_interesting_piece(our_bitfield, peer->bitfield);
         if (interesting == INCORRECT_MSG_TYPE)
         {
             fprintf(stderr, "peer_handle_data(): incompatible message type\n");
@@ -64,10 +64,8 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
     else if (peer->state == PEER_WAIT_FOR_BITFIELD && msg_type == BITFIELD)
     {
         // update peer's bitfield in peer_info
-        if (unpack_bitfield(payload, peer->bitfield) < 0)
-        {
-            fprintf(stderr, "peer_handle_data(): error unpacking bitfield\n");
-        }
+        memcpy(peer->bitfield, payload, g_bitfield_len);
+
         // send out not/interesting
         int interesting = find_interesting_piece(our_bitfield, peer->bitfield);
         if (interesting == INCORRECT_MSG_TYPE)
@@ -198,7 +196,7 @@ int peer_handle_periodic(struct peer_info *peer, int our_peer_id)
         // bitfield was sent because the peer has no interesting pieces.
         if (time(NULL) - peer->time_last_message_sent >= BITFIELD_TIMEOUT_TIME)
         {
-            peer->time_last_message_sent = time();
+            peer->time_last_message_sent = time(NULL);
             peer->state = PEER_NOT_CONNECTED;
         }
     }

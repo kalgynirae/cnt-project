@@ -5,11 +5,13 @@
 #include <stdlib.h>
 #include "init.h"
 #include "receiver.h"
+#include "sender.h"
 
-int peer_handle_data(struct peer_info *peer, message_t msg_type,
-        unsigned char *data, int nbytes, bitfield_t bitfield);
+int peer_handle_data(struct peer_info *peer, message_t msg_type, 
+        unsigned char *payload, int nbytes, bitfield_t our_bitfield,
+        struct peer_info *peers, int num_peers, int our_peer_id);
                      
-int peer_handle_periodic(struct peer_info *peer);
+int peer_handle_periodic(struct peer_info *peer, int our_peer_id);
 
 //randomly choose a piece index owned by other peer and not us
 //return -1 if no interesting piece
