@@ -265,8 +265,8 @@ int has_piece(int idx, bitfield_t my_bitfield)
 // This function sets the bit in bitfield at idx to 1
 int bitfield_set(bitfield_t bitfield, int idx)
 {   
-    char section = my_bitfield[idx / 8];  //byte containing desired bit
+    char section = bitfield[idx / 8];  //byte containing desired bit
     char mask = 0x1 << (idx % 8);         //mask for desired bit
-    my_bitfield[idx / 8] = (section | mask);
+    bitfield[idx / 8] = (section | mask);
     return 0;
 }
