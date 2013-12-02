@@ -104,15 +104,14 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
             bitfield_set(our_bitfield, piece_idx, 1);
             // check if we downloaded the entire file, write appropriate log messages
             int i; // counter for everything in this branch
-            num_pieces = 0; // TODO: find out how to get num_pieces)
-            for (i = 0; i < num_pieces; i++)
+            for (i = 0; i < g_bitfield_len; i++)
             {
                 if (bitfield_get(our_bitfield, i) != 1)
                 {
                     break;
                 }
             }
-            if (i == num_pieces) // meaning we just got the last piece
+            if (i == g_bitfield_len) // meaning we just got the last piece
             {
                 log_downloaded_file(our_peer_id);
             }
@@ -265,7 +264,7 @@ int has_piece(int idx, bitfield_t my_bitfield)
 
 int bitfield_get(bitfield_t bitfield, int idx)
 {
-    // TODO: finish this function, Ryan
+    // TODO: finish this function
     return 0;
 }
 
