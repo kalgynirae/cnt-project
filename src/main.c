@@ -179,22 +179,7 @@ int main(int argc, char *argv[])
                     if (peer_n < num_peers)
                     {
                         fprintf(stderr, "Receiving data from peer %d", peer_n);
-                    }
-                    else
-                    {
-                        fprintf(stderr, "Receiving data to a non-peer socket");
-                        peer_n = -1;
-                    }
 
-                    /*
-                     * At this point, `peer_n` is the index of the peer from
-                     * which we are about to receive a message. Or it is -1,
-                     * meaning we did not receive data from a peer.
-                     */
-                    if (peer_n >= 0)
-                    {
-                        // This is not the listening socket, so we'll receive
-                        // data from it and print it.
                         message_t type = recv_msg(i, &payload_len, payload);
                         if (type == INVALID_MSG)
                         {
@@ -205,6 +190,14 @@ int main(int argc, char *argv[])
                         peer_handle_data(&peers[peer_n], type, payload,
                                          payload_len, our_bitfield, peers,
                                          num_peers);
+                    }
+                    else
+                    {
+                        fprintf(stderr, "Receiving data to a socket not yet "
+                                        "assigned to a peer");
+
+                        // TODO: Receive a handshake message, extract the peer
+                        // ID, and save `i` as that peer's socket_fd
                     }
                 }
             }
