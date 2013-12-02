@@ -11,7 +11,7 @@ struct bitfield_seg
 // TODO: add log function calls everywhere
 int peer_handle_data(struct peer_info *peer, message_t msg_type, 
         unsigned char *payload, int nbytes, bitfield_t our_bitfield,
-        struct peer_info *peers, int num_peers)
+        struct peer_info *peers, int num_peers, int our_peer_id)
 {
     int sender;
     if (msg_type == HAVE)

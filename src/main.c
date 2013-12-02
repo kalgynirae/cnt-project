@@ -204,7 +204,7 @@ int main(int argc, char *argv[])
 
                         peer_handle_data(&peers[peer_n], type, payload,
                                          payload_len, our_bitfield, peers,
-                                         num_peers);
+                                         num_peers, our_peer_id);
                     }
                 }
             }
