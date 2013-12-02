@@ -8,7 +8,6 @@ struct bitfield_seg
     int idx;            //index of sectiongg
 };
 
-// TODO: add log function calls everywhere
 int peer_handle_data(struct peer_info *peer, message_t msg_type, 
         unsigned char *payload, int nbytes, bitfield_t our_bitfield,
         struct peer_info *peers, int num_peers, int our_peer_id)
@@ -33,10 +32,19 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
         {
             send_interested(peer->socket_fd);
         }
+        log_received_have(our_peer_id, peer->peer_id);
     }
-    else if (msg_type == NOT_INTERESTED || msg_type == INTERESTED)
+    else if (msg_type == NOT_INTERESTED)
     {
-        // As far as we can tell, we should do nothing here
+        log_received_not_interested(our_peer_id, peer->peer_id);
+    }
+    else if (msg_type == INTERESTED)
+    {
+        log_received_interested(our_peer_id, peer->peer_id);
+    }
+    else if (msg_type == UNCHOKE)
+    {
+        log_unchoked_by(our_peer_id, peer->peer_id);
     }
     else if (peer->state == PEER_WAIT_FOR_HANDSHAKE && msg_type == HANDSHAKE)
     {   
@@ -46,12 +54,16 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
             send_bitfield(peer->socket_fd, our_bitfield);
             peer->time_last_message_sent = time(NULL);
             peer->state = PEER_WAIT_FOR_BITFIELD;
+            log_connect(our_peer_id, peer->peer_id);
+        }
+        else // In lieu of writing unsuccessful attempts to the log
+        {
+            fprintf(stderr, "received invalid handshake\n");
         }
     }
     else if (peer->state == PEER_WAIT_FOR_BITFIELD && msg_type == BITFIELD)
     {
         // update peer's bitfield in peer_info
-        // TODO: figure out if this causes memory leaks
         if (unpack_bitfield(payload, peer->bitfield) < 0)
         {
             fprintf(stderr, "error unpacking bitfield\n");
@@ -78,6 +90,7 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
         if (msg_type == CHOKE)
         {
             peer->state = PEER_CHOKED;
+            log_receive_choke(our_peer_id, peer->peer_id);
         }
         else if (msg_type == PIECE)
         {
@@ -85,10 +98,29 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
             unsigned int piece_idx = unpack_int(payload); // TODO: does this break?
             if (write_piece(piece_idx, payload[4], nbytes) <= 0)
             {
-                fprintf(stderr, "file piece not written\n");
+                fprintf(stderr, "file piece could not be written\n");
+            }
+            // update our_bitfield
+            bitfield_set(our_bitfield, piece_idx, 1);
+            // check if we downloaded the entire file, write appropriate log messages
+            int i; // counter for everything in this branch
+            num_pieces = 0; // TODO: find out how to get num_pieces)
+            for (i = 0; i < num_pieces; i++)
+            {
+                if (bitfield_get(our_bitfield, i) != 1)
+                {
+                    break;
+                }
+            }
+            if (i == num_pieces) // meaning we just got the last piece
+            {
+                log_downloaded_file(our_peer_id);
+            }
+            else
+            {
+                log_downloaded_piece(our_peer_id, piece_idx);
             }
             // send new request
-            int i; // counter for everything in this branch
             unsigned int next_idx;
             for (;;)
             {
@@ -177,12 +209,14 @@ int peer_handle_periodic(struct peer_info *peer, int our_peer_id)
         {
             // send choke to weakest peer
             // send unchoke
+            //log_change_preferred(our_peer_id, num_preferred, preferred);
         }
         // Calculate new optimistic peer
         if (0/*selected_as_optimistic_peer*/)
         {
             // send choke to weakest peer
             // send unchoke
+            //log_optimistic_unchoke(our_peer_id, new_peer);
         }
     }
     return 0;
