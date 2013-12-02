@@ -107,7 +107,7 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
             int i; // counter for everything in this branch
             for (i = 0; i < g_bitfield_len; i++)
             {
-                if (bitfield_get(our_bitfield, i) != 1)
+                if (!has_piece(i, our_bitfield))
                 {
                     break;
                 }
@@ -125,9 +125,8 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
             for (;;)
             {
                 unsigned int rand_idx = rand() % (nbytes*8);
-                if ((bitfield_get(peer->bitfield, rand_idx) == 1) && // They have it
-                        (bitfield_get(our_bitfield, rand_idx) == 0)) // We don't have it
-                        
+                if (has_piece(rand_idx, peer->bitfield) && // They have it
+                        !has_piece(rand_idx, our_bitfield)) // We don't have it
                 {
                     for (i = 0; i < num_peers; i++)
                     {
