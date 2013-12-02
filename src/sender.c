@@ -94,7 +94,8 @@ int norm_send(int sock_fd,
     int rval = send(sock_fd, (void*)&msg, msg_size, 0);
 
     if (rval < 0) {
-        fprintf(stderr, "send_msg to sock_fd %d failed.\n", sock_fd);
+        fprintf(stderr, "norm_send(): send_msg to sock_fd %d failed.\n",
+                sock_fd);
     }
 
     return rval;

@@ -88,7 +88,7 @@ int open_socket(char *hostname, char *port, int mode)
 
     if (rp == NULL)
     {
-        fprintf(stderr, "Could not connect\n");
+        fprintf(stderr, "open_socket(): Could not connect\n");
         return -1;
     }
 

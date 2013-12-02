@@ -12,7 +12,7 @@ message_t recv_msg(int sockfd, unsigned int *payload_len,
     unsigned char header[HEADER_SIZE];
 
 	if ((nbytes = recv(sockfd, header, HEADER_SIZE, 0)) != HEADER_SIZE) {
-        perror("could not recv incoming message header");
+        fprintf(stderr, "recv_msg(): could not recv incoming message header\n");
     }
 
     //is it a handshake?
@@ -22,7 +22,7 @@ message_t recv_msg(int sockfd, unsigned int *payload_len,
         char padding[HS_PADDING_LEN];
         if ((nbytes = recv(sockfd, padding, HS_PADDING_LEN, 0)) != HS_PADDING_LEN)
         {
-            perror("could not recv incoming handshake padding");
+            fprintf(stderr, "could not recv incoming handshake padding\n");
         }
 
         //get payload (sender id)
@@ -83,7 +83,7 @@ int recv_payload(int sockfd, unsigned char *buf, int length)
     while (so_far < length)
     {
         if ((nbytes = recv(sockfd, buf + so_far, length - so_far, 0)) < 0) {
-            perror("could not receive payload of incoming message");
+            fprintf(stderr, "could not receive payload of incoming message\n");
             return so_far;
         }
         so_far += nbytes;

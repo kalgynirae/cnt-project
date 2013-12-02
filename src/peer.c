@@ -22,7 +22,7 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
         int interesting = find_interesting_piece(our_bitfield, other_bitfield);
         if (interesting == INCORRECT_MSG_TYPE)
         {
-            fprintf(stderr, "incompatible message type\n");
+            fprintf(stderr, "peer_handle_data(): incompatible message type\n");
         }
         else if (interesting == NO_INTERESTING_PIECE)
         {
@@ -58,7 +58,7 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
         }
         else // In lieu of writing unsuccessful attempts to the log
         {
-            fprintf(stderr, "received invalid handshake\n");
+            fprintf(stderr, "peer_handle_data(): received invalid handshake\n");
         }
     }
     else if (peer->state == PEER_WAIT_FOR_BITFIELD && msg_type == BITFIELD)
@@ -66,13 +66,13 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
         // update peer's bitfield in peer_info
         if (unpack_bitfield(payload, peer->bitfield) < 0)
         {
-            fprintf(stderr, "error unpacking bitfield\n");
+            fprintf(stderr, "peer_handle_data(): error unpacking bitfield\n");
         }
         // send out not/interesting
         int interesting = find_interesting_piece(our_bitfield, peer->bitfield);
         if (interesting == INCORRECT_MSG_TYPE)
         {
-            fprintf(stderr, "incompatible message type\n");
+            fprintf(stderr, "peer_handle_data(): incompatible message type\n");
         }
         else if (interesting == NO_INTERESTING_PIECE)
         {
@@ -98,7 +98,7 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
             unsigned int piece_idx = unpack_int(payload); // TODO: does this break?
             if (write_piece(piece_idx, payload[4], nbytes) <= 0)
             {
-                fprintf(stderr, "file piece could not be written\n");
+                fprintf(stderr, "peer_handle_data(): file piece not written\n");
             }
             // update our_bitfield
             bitfield_set(our_bitfield, piece_idx, 1);
@@ -156,13 +156,14 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
         }
         else
         {
-            fprintf(stderr, "incompatible message type\n");
+            fprintf(stderr, "peer_handle_data(): incompatible message type\n");
         }
     }
     else
     {
         // Check what kind of message we've got and print an error
-        fprintf(stderr, "peer %d select()'d with state: %d, message_type: %d\n",
+        fprintf(stderr, "peer_handle_data(): peer %d select()'d with state: "
+                        "%d, message_type: %d\n",
                 peer->peer_id, peer->state, msg_type);
     }
     return 0;

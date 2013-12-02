@@ -12,7 +12,7 @@ void read_cfg(char* cfg_file_name)
     ssize_t read;
 
     if ((fp = fopen(cfg_file_name, "r")) == NULL) {
-        printf("Error opening file");
+        fprintf(stderr, "read_cfg(): Error opening file\n");
     } else {
         while ((read = getline(&line, &len, fp)) != -1) {
             parse_cfg_line(line, &g_config);
@@ -23,7 +23,7 @@ void read_cfg(char* cfg_file_name)
 
         if (fclose(fp) != 0)
         {
-            printf("Error closing file");
+            fprintf(stderr, "read_cfg(): Error closing file");
         }
     }
     g_bitfield_len = g_config.file_size / g_config.piece_size;
@@ -115,7 +115,7 @@ void parse_cfg_line(char *line, struct common_cfg *cfg)
         cfg->piece_size = atoi(val);
     }
     else {
-        printf("%s is invalid as a config entry", val);
+        fprintf("parse_cfg_line(): %s is invalid as a config entry\n", val);
     }
 }
 
