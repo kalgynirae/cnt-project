@@ -9,6 +9,7 @@ struct bitfield_seg
 };
 
 // TODO: add log function calls everywhere
+// TODO: add '\n' char to all fprintf calls
 int peer_handle_data(struct peer_info *peer, message_t msg_type, 
         unsigned char *payload, int nbytes, bitfield_t our_bitfield,
         struct peer_info *peers, int num_peers)
@@ -18,7 +19,7 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
     {
         // update peer->bitfield based on the HAVE received
         unsigned int piece_idx = unpack_int(payload);
-        peer->bitfield[piece_idx] = 1; // TODO: figure out how to index bitfield bits
+        bitfield_set(peer->bitfield, piece_idx, 1);
         // send out not/interesting
         int interesting = find_interesting_piece(our_bitfield, other_bitfield);
         if (interesting == INCORRECT_MSG_TYPE)
@@ -39,7 +40,8 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
         // As far as we can tell, we should do nothing here
     }
     else if (peer->state == PEER_WAIT_FOR_HANDSHAKE && msg_type == HANDSHAKE)
-    {   // Transition to bitfield if rcv'd handshake and handshake is valid
+    {   
+        // Transition to bitfield if rcv'd handshake and handshake is valid
         if ((sender = unpack_int(payload)) >= 0)
         {
             send_bitfield(peer->socket_fd, our_bitfield);
@@ -49,11 +51,14 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
     }
     else if (peer->state == PEER_WAIT_FOR_BITFIELD && msg_type == BITFIELD)
     {
-        // update out_bitfield
-        bitfield_t other_bitfield = unpack_bitfield(payload);
-        peer->bitfield = other_bitfield; // TODO: figure out if this causes memory leaks
+        // update peer's bitfield in peer_info
+        // TODO: figure out if this causes memory leaks
+        if (unpack_bitfield(payload, peer->bitfield) < 0)
+        {
+            fprintf(stderr, "error unpacking bitfield");
+        }
         // send out not/interesting
-        int interesting = find_interesting_piece(our_bitfield, other_bitfield);
+        int interesting = find_interesting_piece(our_bitfield, peer->bitfield);
         if (interesting == INCORRECT_MSG_TYPE)
         {
             fprintf(stderr, "incompatible message type");
@@ -167,7 +172,7 @@ int peer_handle_periodic(struct peer_info *peer, int our_peer_id)
         }
     }
     else if (peer->state == PEER_CHOKED)
-    {
+    {   // TODO: do this part
         // Calculate new preferred peers
         if (0/*selected_as_preferred_peer*/)
         {
@@ -227,5 +232,12 @@ int has_piece(int idx, bitfield_t my_bitfield)
 int bitfield_get(bitfield_t bitfield, int idx)
 {
     // TODO: finish this function, Ryan
+    return 0;
+}
+
+// This function takes sets the bit in bitfield at idx to new_value
+int bitfield_set(bitfield_t bitfield, int idx, int new_value)
+{   
+    // TODO: write this function
     return 0;
 }
