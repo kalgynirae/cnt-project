@@ -107,7 +107,7 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
             int i; // counter for everything in this branch
             for (i = 0; i < g_bitfield_len; i++)
             {
-                if (!has_piece(i, our_bitfield))
+                if (!bitfield_get(our_bitfield, i))
                 {
                     break;
                 }
@@ -125,8 +125,8 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
             for (;;)
             {
                 unsigned int rand_idx = rand() % (nbytes*8);
-                if (has_piece(rand_idx, peer->bitfield) && // They have it
-                        !has_piece(rand_idx, our_bitfield)) // We don't have it
+                if (bitfield_get(peer->bitfield, rand_idx) && // They have it
+                        !bitfield_get(our_bitfield, rand_idx)) // We don't have it
                 {
                     for (i = 0; i < num_peers; i++)
                     {
@@ -255,9 +255,9 @@ int find_interesting_piece(bitfield_t my_bitfield, bitfield_t other_bitfield)
     return (bits[random() % j] + 8 * segment.idx);
 }
 
-int has_piece(int idx, bitfield_t my_bitfield)
+int bitfield_get(bitfield_t bitfield, int idx)
 {
-    char section = my_bitfield[idx / 8];  //byte containing desired bit
+    char section = bitfield[idx / 8];  //byte containing desired bit
     char mask = 0x1 << (idx % 8);         //mask for desired bit
     return (section & mask);
 }
