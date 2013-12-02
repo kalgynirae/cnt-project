@@ -61,11 +61,11 @@ void test_bit(int idx, bitfield_t bitfield)
 {
     printf("bitfield ");
     print_bits(bitfield);
-    if (has_piece(idx, bitfield))
+    if (bitfield_get(bitfield, idx))
     {
         printf(" has piece %d\n", idx);
     }
-    else if (!has_piece(idx, bitfield))
+    else if (!bitfield_get(bitfield, idx))
     {
         printf(" doesn't have piece %d\n", idx);
     }
