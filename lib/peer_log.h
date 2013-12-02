@@ -24,20 +24,20 @@ void log_change_preferred(int peer, int num_preferred, int new_preferred[]);
 //a peer has optimistically unchoked unchoked_peer
 void log_optimistic_unchoke(int peer, int unchoked_peer);
 
-//reciever got UNCHOKE message from sender
-void log_unchoked_by(int reciever, int sender);
+//receiver got UNCHOKE message from sender
+void log_unchoked_by(int receiver, int sender);
 
-//reciever got CHOKE message from sender
-void log_recieve_choke(int reciever, int sender);
+//receiver got CHOKE message from sender
+void log_receive_choke(int receiver, int sender);
 
-//reciever got HAVE message from sender
-void log_recieved_have(int reciever, int sender);
+//receiver got HAVE message from sender
+void log_received_have(int receiver, int sender);
 
-//reciever got INTERESTED message from sender
-void log_recieved_interested(int reciever, int sender);
+//receiver got INTERESTED message from sender
+void log_received_interested(int receiver, int sender);
 
-//reciever got NOT_INTERESTED message from sender
-void log_recieved_not_interested(int reciever, int sender);
+//receiver got NOT_INTERESTED message from sender
+void log_received_not_interested(int receiver, int sender);
 
 //peer has finished downloading piece
 void log_downloaded_piece(int peer, int piece);
