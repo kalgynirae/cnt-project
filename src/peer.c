@@ -17,7 +17,7 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
     {
         // update peer->bitfield based on the HAVE received
         unsigned int piece_idx = unpack_int(payload);
-        bitfield_set(peer->bitfield, piece_idx, 1);
+        bitfield_set(peer->bitfield, piece_idx);
         // send out not/interesting
         int interesting = find_interesting_piece(our_bitfield, other_bitfield);
         if (interesting == INCORRECT_MSG_TYPE)
@@ -101,12 +101,13 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
                 fprintf(stderr, "peer_handle_data(): file piece not written\n");
             }
             // update our_bitfield
-            bitfield_set(our_bitfield, piece_idx, 1);
-            // check if we downloaded the entire file, write appropriate log messages
+            bitfield_set(our_bitfield, piece_idx);
+            // check if we downloaded the entire file, 
+            // write appropriate log messages
             int i; // counter for everything in this branch
             for (i = 0; i < g_bitfield_len; i++)
             {
-                if (bitfield_get(our_bitfield, i) != 1)
+                if (!bitfield_get(our_bitfield, i))
                 {
                     break;
                 }
@@ -124,9 +125,8 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
             for (;;)
             {
                 unsigned int rand_idx = rand() % (nbytes*8);
-                if ((bitfield_get(peer->bitfield, rand_idx) == 1) && // They have it
-                        (bitfield_get(our_bitfield, rand_idx) == 0)) // We don't have it
-                        
+                if (bitfield_get(peer->bitfield, rand_idx) && // They have it
+                        !bitfield_get(our_bitfield, rand_idx)) // We don't have it
                 {
                     for (i = 0; i < num_peers; i++)
                     {
@@ -255,22 +255,18 @@ int find_interesting_piece(bitfield_t my_bitfield, bitfield_t other_bitfield)
     return (bits[random() % j] + 8 * segment.idx);
 }
 
-int has_piece(int idx, bitfield_t my_bitfield)
+int bitfield_get(bitfield_t bitfield, int idx)
 {
-    char section = my_bitfield[idx / 8];  //byte containing desired bit
+    char section = bitfield[idx / 8];  //byte containing desired bit
     char mask = 0x1 << (idx % 8);         //mask for desired bit
     return (section & mask);
 }
 
-int bitfield_get(bitfield_t bitfield, int idx)
-{
-    // TODO: finish this function
-    return 0;
-}
-
-// This function takes sets the bit in bitfield at idx to new_value
-int bitfield_set(bitfield_t bitfield, int idx, int new_value)
+// This function sets the bit in bitfield at idx to 1
+int bitfield_set(bitfield_t bitfield, int idx)
 {   
-    // TODO: write this function
+    char section = bitfield[idx / 8];  //byte containing desired bit
+    char mask = 0x1 << (idx % 8);         //mask for desired bit
+    bitfield[idx / 8] = (section | mask);
     return 0;
 }
