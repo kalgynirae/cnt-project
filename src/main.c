@@ -178,7 +178,7 @@ int main(int argc, char *argv[])
                     }
                     if (peer_n < num_peers)
                     {
-                        fprintf(stderr, "Receiving data from peer %d", peer_n);
+                        fprintf(stderr, "Receiving data from peer %d\n", peer_n);
 
                         message_t type = recv_msg(i, &payload_len, payload);
                         if (type == INVALID_MSG)
@@ -194,7 +194,7 @@ int main(int argc, char *argv[])
                     else
                     {
                         fprintf(stderr, "Receiving data to a socket not yet "
-                                        "assigned to a peer");
+                                        "assigned to a peer\n");
 
                         // TODO: Receive a handshake message, extract the peer
                         // ID, and save `i` as that peer's socket_fd

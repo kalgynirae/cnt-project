@@ -10,11 +10,11 @@ void log_connect(int from_peer, int to_peer)
     char log[80];
 
     snprintf(log, 80, 
-            "Peer %d makes a connection to peer %d", from_peer, to_peer);
+            "Peer %d makes a connection to peer %d\n", from_peer, to_peer);
     write_log(from_peer, log);
 
     snprintf(log, 80, 
-            "Peer %d is connected from Peer %d", to_peer, from_peer);
+            "Peer %d is connected from Peer %d\n", to_peer, from_peer);
     write_log(to_peer, log);
 }
 
@@ -35,7 +35,7 @@ void log_change_preferred(int peer, int num_preferred, int new_preferred[])
     sprintf(id, "%d", new_preferred[i]);
     strcat(neighbors, id);          //last without trailing ','
 
-    snprintf(log, 80, "Peer %d has the preferred neighbors %s", peer, neighbors);
+    snprintf(log, 80, "Peer %d has the preferred neighbors %s\n", peer, neighbors);
             
     write_log(peer, log);
 }
@@ -45,7 +45,7 @@ void log_optimistic_unchoke(int peer, int unchoked_peer)
 {
     char log[80];
 
-    snprintf(log, 80, "Peer %d has the optimistically-unchoked neighbor %d", 
+    snprintf(log, 80, "Peer %d has the optimistically-unchoked neighbor %d\n",
             peer, unchoked_peer);
 
     write_log(peer, log);
@@ -56,7 +56,7 @@ void log_unchoked_by(int reciever, int sender)
 {
     char log[80];
 
-    snprintf(log, 80, "Peer %d is unchoked by %d", reciever, sender);
+    snprintf(log, 80, "Peer %d is unchoked by %d\n", reciever, sender);
 
     write_log(reciever, log);
 }
@@ -66,7 +66,7 @@ void log_recieve_choke(int reciever, int sender)
 {
     char log[80];
 
-    snprintf(log, 80, "Peer %d is choked by %d", reciever, sender);
+    snprintf(log, 80, "Peer %d is choked by %d\n", reciever, sender);
 
     write_log(reciever, log);
 }
@@ -76,7 +76,7 @@ void log_recieved_have(int reciever, int sender)
 {
     char log[80];
 
-    snprintf(log, 80, "Peer %d recieved 'have' message from %d", 
+    snprintf(log, 80, "Peer %d recieved 'have' message from %d\n",
             reciever, sender);
 
     write_log(reciever, log);
@@ -87,7 +87,7 @@ void log_recieved_interested(int reciever, int sender)
 {
     char log[80];
 
-    snprintf(log, 80, "Peer %d recieved 'interested' message from %d", 
+    snprintf(log, 80, "Peer %d recieved 'interested' message from %d\n",
             reciever, sender);
 
     write_log(reciever, log);
@@ -98,7 +98,7 @@ void log_recieved_not_interested(int reciever, int sender)
 {
     char log[80];
 
-    snprintf(log, 80, "Peer %d recieved 'not interested' message from %d", 
+    snprintf(log, 80, "Peer %d recieved 'not interested' message from %d\n",
             reciever, sender);
 
     write_log(reciever, log);
@@ -109,7 +109,7 @@ void log_downloaded_piece(int peer, int piece)
 {
     char log[80];
 
-    snprintf(log, 80, "Peer %d has downloaded the piece %d", peer, piece);
+    snprintf(log, 80, "Peer %d has downloaded the piece %d\n", peer, piece);
 
     write_log(peer, log);
 }
@@ -119,7 +119,7 @@ void log_downloaded_file(int peer)
 {
     char log[80];
 
-    snprintf(log, 80, "Peer %d has downloaded the complete file", peer);
+    snprintf(log, 80, "Peer %d has downloaded the complete file\n", peer);
 
     write_log(peer, log);
 }
@@ -133,7 +133,8 @@ void write_log(int peer, char* log)
 
     //open in append mode
     if ((fp = fopen(filename, "a")) == NULL) {
-        fprintf(stderr, "Error opening log file for peer %d\n", peer);
+        fprintf(stderr, "write_log(): Error opening log file for peer %d\n",
+                peer);
     } else {
 
         //get timestamp
@@ -147,7 +148,8 @@ void write_log(int peer, char* log)
 
         if (fclose(fp) != 0)
         {
-            fprintf(stderr, "Error closing log file for peer %d\n", peer);
+            fprintf(stderr, "write_log(): Error closing log file for peer "
+                    "%d\n", peer);
         }
     }
 }
