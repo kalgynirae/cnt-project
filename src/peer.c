@@ -132,12 +132,16 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
     return 0;
 }
 
-int peer_handle_periodic(struct peer_info *peer)
+int peer_handle_periodic(struct peer_info *peer, int our_peer_id)
 {
     // No FD will trigger when the Peer is not connected
     if (peer->state == PEER_NOT_CONNECTED)
     {
-        // Send our handshake message
+        // Only send handshake if our peer id is less than theirs
+        if (our_peer_id < peer->peer_id)
+        {
+            send_handshake(peer->socket_fd, our_peer_id);
+        }
         // Start a timer and attach it to the peer_info struct
         peer->time_last_message_sent = time(NULL);
         peer->state = PEER_WAIT_FOR_HANDSHAKE;
