@@ -9,7 +9,6 @@ struct bitfield_seg
 };
 
 // TODO: add log function calls everywhere
-// TODO: add '\n' char to all fprintf calls
 int peer_handle_data(struct peer_info *peer, message_t msg_type, 
         unsigned char *payload, int nbytes, bitfield_t our_bitfield,
         struct peer_info *peers, int num_peers)
@@ -24,7 +23,7 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
         int interesting = find_interesting_piece(our_bitfield, other_bitfield);
         if (interesting == INCORRECT_MSG_TYPE)
         {
-            fprintf(stderr, "incompatible message type");
+            fprintf(stderr, "incompatible message type\n");
         }
         else if (interesting == NO_INTERESTING_PIECE)
         {
@@ -55,13 +54,13 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
         // TODO: figure out if this causes memory leaks
         if (unpack_bitfield(payload, peer->bitfield) < 0)
         {
-            fprintf(stderr, "error unpacking bitfield");
+            fprintf(stderr, "error unpacking bitfield\n");
         }
         // send out not/interesting
         int interesting = find_interesting_piece(our_bitfield, peer->bitfield);
         if (interesting == INCORRECT_MSG_TYPE)
         {
-            fprintf(stderr, "incompatible message type");
+            fprintf(stderr, "incompatible message type\n");
         }
         else if (interesting == NO_INTERESTING_PIECE)
         {
@@ -86,7 +85,7 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
             unsigned int piece_idx = unpack_int(payload); // TODO: does this break?
             if (write_piece(piece_idx, payload[4], nbytes) <= 0)
             {
-                fprintf(stderr, "file piece not written");
+                fprintf(stderr, "file piece not written\n");
             }
             // send new request
             int i; // counter for everything in this branch
@@ -125,13 +124,13 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
         }
         else
         {
-            fprintf(stderr, "incompatible message type");
+            fprintf(stderr, "incompatible message type\n");
         }
     }
     else
     {
         // Check what kind of message we've got and print an error
-        fprintf(stderr, "peer %d select()'d with state: %d, message_type: %d",
+        fprintf(stderr, "peer %d select()'d with state: %d, message_type: %d\n",
                 peer->peer_id, peer->state, msg_type);
     }
     return 0;
