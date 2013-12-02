@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "message.h"
 
 #define PEER_NOT_CONNECTED 0
 #define PEER_WAIT_FOR_HANDSHAKE 1
