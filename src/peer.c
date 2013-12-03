@@ -181,6 +181,11 @@ int peer_handle_periodic(struct peer_info *peer, int our_peer_id, bitfield_t our
         // Only send handshake if our peer id is less than theirs
         if (our_peer_id < peer->peer_id)
         {
+            int s = make_socket_to_peer(peer);
+            if (s == -1)
+            {
+                fprintf(stderr, "peer_handle_periodic(): error making socket");
+            }
             send_handshake(peer->socket_fd, our_peer_id);
         }
         // Start a timer and attach it to the peer_info struct
