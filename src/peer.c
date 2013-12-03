@@ -212,7 +212,7 @@ int peer_handle_periodic(struct peer_info *peer, int our_peer_id, bitfield_t our
         if ((time(NULL) - last_p_interval_start) >= p) // p time has elapsed
         {
             last_p_interval_start = time(NULL);
-            // calculate rate for each neighbor
+            // find the k fastest peers, store in preferred_ids
             int i, j;
             int preferred_ids[k] = { 0 }; // Should initialize all values to 0
             for (i = 0; i < num_peers; i++)
@@ -258,15 +258,36 @@ int peer_handle_periodic(struct peer_info *peer, int our_peer_id, bitfield_t our
                     }
                     peers[i].pieces_this_interval = 0;
                 }
-
             }
-            // then pick the k highest transmission rates and put their peer_ids in 'preferred'
-            
-
-
-            // send choke to weakest peer
-            // send unchoke
-            //log_change_preferred(our_peer_id, num_preferred, preferred);
+            /* now loop through the peers a second time, choking those who are 
+             * no longer preferred and unchoking those who need to be preferred
+             */
+            for (i = 0; i < num_peers; i++)
+            {
+                for (j = 0; j < k; j++) // find index of peer[i] in preferred_ids
+                {
+                    if (preferred_ids[j] == peer[i].peer_id)
+                    {
+                        break;
+                    }
+                } 
+                // j is now the index of the peer in pref_ids if it is, or k if not
+                if (peers[i].state == PEER_WAIT_UNCHOKED)
+                {
+                    if (j == k) // send choke to old preferred peer
+                    {
+                        send_choke(preferred_ids[j]);
+                    }
+                }
+                else if (peers[i].state == PEER_CHOKED)
+                {
+                    if (j < k) // send unchoke to new preferred peer
+                    {
+                        send_unchoke(preferred_ids[j]);
+                    }
+                }
+            }
+            log_change_preferred(our_peer_id, k, preferred_ids);
         }
         // Calculate new optimistic peer
         if ((time(NULL) - last_m_interval_start) >= m)  // m time has elapsed
