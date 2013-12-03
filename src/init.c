@@ -109,7 +109,8 @@ void parse_cfg_line(char *line, struct common_cfg *cfg)
         cfg->optimistic_unchoke_interval = atoi(val);
     }
     else if (strcmp(key, "FileName") == 0) {
-        cfg->file_name  = malloc(strlen(val) + 1);
+        val[strlen(val) - 1] = '\0';   //strip newline
+        cfg->file_name  = malloc(strlen(val));
         strcpy(cfg->file_name, val);
     }
     else if (strcmp(key, "FileSize") == 0) {
