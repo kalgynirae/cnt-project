@@ -5,17 +5,20 @@ struct common_cfg g_config;
 struct bitfield_seg
 {
     char byte;          //section of bitfield
-    int idx;            //index of sectiongg
+    int idx;            //index of section
 };
 // initialize state variables from lib/peer.h
-time_t last_p_interval_start = time(NULL);
-time_t last_m_interval_start = time(NULL);
+time_t last_p_interval_start;
+time_t last_m_interval_start;
 int last_optimistic_peer = -1;
 
 int peer_handle_data(struct peer_info *peer, message_t msg_type, 
         unsigned char *payload, int nbytes, bitfield_t our_bitfield,
         struct peer_info *peers, int num_peers, int our_peer_id)
 {
+    last_p_interval_start = time(NULL);
+    last_m_interval_start = time(NULL);
+
     int sender;
     if (msg_type == HAVE)
     {
@@ -98,10 +101,7 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
         {
             // write the payload to disc
             unsigned int piece_idx = unpack_int(payload); // TODO: does this break?
-            if (write_piece(piece_idx, payload[4], nbytes) <= 0)
-            {
-                fprintf(stderr, "peer_handle_data(): file piece not written\n");
-            }
+            extract_and_save_piece(nbytes, payload);
             // update our_bitfield
             bitfield_set(our_bitfield, piece_idx);
             // increment pieces_this_interval field of peer_info

@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
 
     // Allocate a buffer to store data read from socket
     unsigned char payload[BUFSIZ];
-    int payload_len; // TODO: initialize this value correctly
+    unsigned int payload_len; // TODO: initialize this value correctly
 
     // Var for storing the number of the peer each time we receive data
     int peer_n;
