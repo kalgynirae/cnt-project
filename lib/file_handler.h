@@ -22,6 +22,6 @@ int read_piece(unsigned int piece_idx, char** buffer, int PS, int P_ID);
  * len is the length of the content contained in buffer
  * return amount written on success or negative number on error
  */
-int write_piece(unsigned int piece_idx, unsigned int len, char* buffer);
+int write_piece(unsigned int piece_idx, unsigned int len, char* buffer, int P_ID);
 
 #endif

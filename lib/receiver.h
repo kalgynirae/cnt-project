@@ -39,6 +39,6 @@ unsigned int unpack_int(unsigned char bytes[4]);
 bitfield_t unpack_bitfield(unsigned char bytes[1]);
 
 //extract and save content from piece payload
-void extract_and_save_piece(unsigned int len, unsigned char payload[]);
+void extract_and_save_piece(unsigned int len, unsigned char payload[], int my_id);
 
 #endif

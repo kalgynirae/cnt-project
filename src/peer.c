@@ -101,7 +101,7 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
         {
             // write the payload to disc
             unsigned int piece_idx = unpack_int(payload); // TODO: does this break?
-            extract_and_save_piece(nbytes, payload);
+            extract_and_save_piece(nbytes, payload, our_peer_id);     
             // update our_bitfield
             bitfield_set(our_bitfield, piece_idx);
             // increment pieces_this_interval field of peer_info
