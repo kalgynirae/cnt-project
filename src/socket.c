@@ -1,10 +1,5 @@
 #include "socket.h"
 
-#define OPEN_SOCKET_NEITHER 0
-#define OPEN_SOCKET_LISTEN 1
-#define OPEN_SOCKET_CONNECT 2
-#define PORT_DIGITS 5
-
 int open_socket(char *hostname, char *port, int mode)
 {
     int s;  // for temporarily storing a function's return status
@@ -64,6 +59,8 @@ int open_socket(char *hostname, char *port, int mode)
         else if (mode == OPEN_SOCKET_LISTEN)
         {
             // Try to bind() to the socket
+            int yes = 1;
+            setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof yes);
             s = bind(socket_fd, rp->ai_addr, rp->ai_addrlen);
             if (s == 0)
             {
