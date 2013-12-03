@@ -135,7 +135,7 @@ int main(int argc, char *argv[])
     int i;
     for (i = 0 ; i < 8 ; i++)
     {
-        type = recv_msg(sockfd, &payload_len, &payload);
+        type = recv_msg(sockfd, &payload_len, payload);
         process_msg(payload, payload_len, type);
         if (payload != NULL) { free(payload); }      //Don't forget this!!!
         payload = NULL;
