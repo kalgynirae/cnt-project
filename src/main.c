@@ -101,8 +101,8 @@ int main(int argc, char *argv[])
     int max_fd = listen_socket_fd;
 
     // Allocate a buffer to store data read from socket
-    unsigned char payload[BUFSIZ];
-    unsigned int payload_len; // TODO: initialize this value correctly
+    unsigned char payload[g_config.piece_size];
+    unsigned int payload_len;
 
     // Var for storing the number of the peer each time we receive data
     int peer_n;
