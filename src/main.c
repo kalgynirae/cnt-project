@@ -2,7 +2,9 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <sys/select.h>
 #include <sys/socket.h>
 #include <unistd.h>
@@ -21,6 +23,8 @@
 //global configuration options
 extern struct common_cfg g_config;
 extern int g_bitfield_len;
+
+void ensure_peer_dir_exists(int id);
 
 int main(int argc, char *argv[])
 {
@@ -46,8 +50,18 @@ int main(int argc, char *argv[])
     printf("PieceSize = %d\n", g_config.piece_size);
 
     int our_peer_id = atoi(argv[1]);
+    ensure_peer_dir_exists(our_peer_id);
+    
     int we_have_file;
     peers = read_peers(PEER_CFG_PATH, &num_peers, our_peer_id, &we_have_file);
+    if (we_have_file)
+    {
+        file_split(g_config.file_name, 
+                g_config.file_size, 
+                g_config.piece_size, 
+                our_peer_id);
+    }
+    return 0;
     if (peers == NULL)
     {
         fprintf(stderr, "Exiting after read_peers() error.\n");
@@ -378,4 +392,15 @@ int main(int argc, char *argv[])
 
     } // End of select() loop
     return 0;
+}
+
+void ensure_peer_dir_exists(int id)
+{
+    struct stat st = {0};
+
+    char dir[32];
+    sprintf(dir, "runtime/peer_%d", id);
+    if (stat(dir, &st) == -1) {
+        mkdir(dir, 0700);
+    }
 }
