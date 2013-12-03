@@ -207,7 +207,7 @@ int main(int argc, char *argv[])
         // Call the periodic handler for every peer
         for (i = 0; i < num_peers; i++)
         {
-            peer_handle_periodic(&peers[i], our_peer_id);
+            peer_handle_periodic(&peers[i], our_peer_id, our_bitfield, peers, num_peers);
         }
     }
     return 0;

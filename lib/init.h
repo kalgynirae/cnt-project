@@ -37,6 +37,7 @@ struct peer_info
     int time_last_message_sent; // time in seconds since THE EPOCH, using time()
     bitfield_t *bitfield;
     unsigned int requested;     // piece index requested from this peer
+    int pieces_this_interval;   // # of pieces completed this preferred unchoking interval
 };
 
 // read config file and return struct containing options

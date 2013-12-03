@@ -100,8 +100,9 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
             }
             // update our_bitfield
             bitfield_set(our_bitfield, piece_idx);
-            // check if we downloaded the entire file, 
-            // write appropriate log messages
+            // increment pieces_this_interval field of peer_info
+            peer->pieces_this_interval++;
+            // check if we downloaded the entire file, write appropriate log messages
             int i; // counter for everything in this branch
             for (i = 0; i < g_bitfield_len; i++)
             {
@@ -112,6 +113,7 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
             }
             if (i == g_bitfield_len) // meaning we just got the last piece
             {
+                peer->has_file = 1;
                 log_downloaded_file(our_peer_id);
             }
             else
@@ -166,7 +168,8 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
     return 0;
 }
 
-int peer_handle_periodic(struct peer_info *peer, int our_peer_id)
+int peer_handle_periodic(struct peer_info *peer, int our_peer_id, bitfield_t our_bitfield,
+        struct peer_info *peers, int num_peers)
 {
     // No FD will trigger when the Peer is not connected
     if (peer->state == PEER_NOT_CONNECTED)
@@ -201,17 +204,74 @@ int peer_handle_periodic(struct peer_info *peer, int our_peer_id)
         }
     }
     else if (peer->state == PEER_CHOKED)
-    {   // TODO: do this part
+    {
         // Calculate new preferred peers
-        if (0/*selected_as_preferred_peer*/)
+        int k = g_config.n_preferred_neighbors;
+        int p = g_config.unchoke_interval;
+        int m = g_config.optimistic_unchoke_interval;
+        if ((time(NULL) - last_p_interval_start) >= p) // p time has elapsed
         {
+            last_p_interval_start = time(NULL);
+            // calculate rate for each neighbor
+            int i, j;
+            int preferred_ids[k] = { 0 }; // Should initialize all values to 0
+            for (i = 0; i < num_peers; i++)
+            {
+                // first check if interested, if not skip
+                // store the transmission rates for each interested peer in a list
+                int interesting = find_interesting_piece(our_bitfield, peers[i].bitfield);
+                if (interesting == INCORRECT_MSG_TYPE)
+                {
+                    fprintf(stderr, "peer_handle_periodic(): incompatible message type\n");
+                    peers[i].pieces_this_interval = 0;
+                    continue;
+                }
+                else if (interesting == NO_INTERESTING_PIECE)
+                {
+                    peers[i].pieces_this_interval = 0;
+                    continue;
+                }
+                else // they are interesting!
+                {
+                    for (j = 0; j < k; j++)
+                    {
+                        if (peers[i].pieces_this_interval >
+                                peers[preferred_ids[j]].pieces_this_interval)
+                        {
+                            if (j == k-1) // case that this peer is fastest
+                            {
+                                preferred_ids[j] = peers[i].peer_id;
+                            }
+                            else // see if we're faster than the next one
+                            {
+                                continue;
+                            }
+                        }
+                        else // found the first peer we're slower than
+                        {
+                            if (j > 0)
+                            {
+                                preferred_ids[j-1] = peers[i].peer_id;
+                            }
+                            break;
+                        }
+                    }
+                    peers[i].pieces_this_interval = 0;
+                }
+
+            }
+            // then pick the k highest transmission rates and put their peer_ids in 'preferred'
+            
+
+
             // send choke to weakest peer
             // send unchoke
             //log_change_preferred(our_peer_id, num_preferred, preferred);
         }
         // Calculate new optimistic peer
-        if (0/*selected_as_optimistic_peer*/)
+        if ((time(NULL) - last_m_interval_start) >= m)  // m time has elapsed
         {
+            last_m_interval_start = time(NULL);
             // send choke to weakest peer
             // send unchoke
             //log_optimistic_unchoke(our_peer_id, new_peer);
