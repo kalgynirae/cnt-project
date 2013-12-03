@@ -147,11 +147,12 @@ int main(int argc, char *argv[])
          * to be recv()'d from (or, in the case of the listen_socket_fd,
          * accept()'d from).
          */
-        for (i = 0; i <= max_fd; i++)
+        int socket;
+        for (socket = 0; socket <= max_fd; socket++)
         {
-            if (FD_ISSET(i, &read_fds))
+            if (FD_ISSET(socket, &read_fds))
             {
-                if (i == listen_socket_fd)
+                if (socket == listen_socket_fd)
                 {
                     // This is the listening socket, so we're going to call
                     // accept() to open a new socket.
@@ -174,14 +175,14 @@ int main(int argc, char *argv[])
                     // Let's figure out which peer this socket belongs to.
                     for (peer_n = 0; peer_n < num_peers; peer_n++)
                     {
-                        if (i == peers[peer_n].socket_fd)
+                        if (socket == peers[peer_n].socket_fd)
                             break;
                     }
                     if (peer_n < num_peers)
                     {
                         fprintf(stderr, "Receiving data from peer %d\n", peer_n);
 
-                        message_t type = recv_msg(i, &payload_len, payload);
+                        message_t type = recv_msg(socket, &payload_len, payload);
                         if (type == INVALID_MSG)
                         {
                             fprintf(stderr, "recv_msg() failed\n");
@@ -198,7 +199,7 @@ int main(int argc, char *argv[])
                                         "assigned to a peer\n");
 
                         // TODO: Receive a handshake message, extract the peer
-                        // ID, and save `i` as that peer's socket_fd
+                        // ID, and save `socket` as that peer's socket_fd
                     }
                 }
             }
