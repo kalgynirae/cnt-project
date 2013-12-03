@@ -1,10 +1,5 @@
 #include "socket.h"
 
-#define OPEN_SOCKET_NEITHER 0
-#define OPEN_SOCKET_LISTEN 1
-#define OPEN_SOCKET_CONNECT 2
-#define PORT_DIGITS 5
-
 int open_socket(char *hostname, char *port, int mode)
 {
     int s;  // for temporarily storing a function's return status
