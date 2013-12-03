@@ -39,6 +39,16 @@ int main()
     printf("should randomly select different pieces\n");
     test_interesting(b1, b2, 4);
     test_interesting(b2, b1, 4);
+
+    printf("--------------------Testing bitfield initialization---------------\n");
+    init_bitfield(b1,0);
+    init_bitfield(b2,1);
+    printf("b1 doesn't have file, b2 does\n");
+    printf("b1: ");
+    print_bits(b1);
+    printf("\nb2: ");
+    print_bits(b2);
+    printf("\n");
     return 0;
 }
 
