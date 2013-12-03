@@ -54,4 +54,7 @@ struct peer_info* read_peers(char* cfg_file_name, int* num_peers,
 void parse_cfg_line(char *line, struct common_cfg *cfg);
 // parse a line of the peer info file
 struct peer_info parse_peer_line(char *line);
+
+//initialize bitfield based on whether or not piece is owned
+void init_bitfield(bitfield_t bitfield, int has_file);
 #endif

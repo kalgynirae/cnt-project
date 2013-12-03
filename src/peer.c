@@ -399,8 +399,8 @@ int bitfield_set(bitfield_t bitfield, int idx)
     return 0;
 }
 
-void init_bitfield(bitfield_t bitfield, int has_piece)
+void init_bitfield(bitfield_t bitfield, int has_file)
 {
-    int val = has_piece ? 0xFF : 0x00;
+    int val = has_file ? 0xFF : 0x00;
     memset(bitfield, val, g_bitfield_len);
 }
