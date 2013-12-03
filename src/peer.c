@@ -101,10 +101,7 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
         {
             // write the payload to disc
             unsigned int piece_idx = unpack_int(payload); // TODO: does this break?
-            if (write_piece(piece_idx, payload[4], nbytes) <= 0)
-            {
-                fprintf(stderr, "peer_handle_data(): file piece not written\n");
-            }
+            extract_and_save_piece(nbytes, payload);
             // update our_bitfield
             bitfield_set(our_bitfield, piece_idx);
             // increment pieces_this_interval field of peer_info

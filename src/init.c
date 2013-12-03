@@ -115,7 +115,8 @@ void parse_cfg_line(char *line, struct common_cfg *cfg)
         cfg->piece_size = atoi(val);
     }
     else {
-        fprintf("parse_cfg_line(): %s is invalid as a config entry\n", val);
+        fprintf(stderr, "parse_cfg_line(): %s is invalid as a config entry\n", 
+                val);
     }
 }
 
