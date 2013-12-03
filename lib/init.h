@@ -38,6 +38,7 @@ struct peer_info
     bitfield_t bitfield;
     unsigned int requested;     // piece index requested from this peer
     int pieces_this_interval;   // # of pieces completed this preferred unchoking interval
+    int optimistic_flag;        // 1 if this peer was optimistically unchoked, 0 otherwise
 };
 
 // read config file and return struct containing options

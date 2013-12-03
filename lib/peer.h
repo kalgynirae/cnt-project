@@ -7,8 +7,9 @@
 #include "receiver.h"
 #include "sender.h"
 
-time_t last_p_interval_start = time(NULL);
-time_t last_m_interval_start = time(NULL);
+time_t last_p_interval_start;
+time_t last_m_interval_start;
+int last_optimistic_peer; // peer_id of the last optimistically unchoked peer
 
 int peer_handle_data(struct peer_info *peer, message_t msg_type, 
         unsigned char *payload, int nbytes, bitfield_t our_bitfield,

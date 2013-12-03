@@ -7,6 +7,10 @@ struct bitfield_seg
     char byte;          //section of bitfield
     int idx;            //index of sectiongg
 };
+// initialize state variables from lib/peer.h
+last_p_interval_start = time(NULL);
+last_m_interval_start = time(NULL);
+last_optimistic_peer = -1;
 
 int peer_handle_data(struct peer_info *peer, message_t msg_type, 
         unsigned char *payload, int nbytes, bitfield_t our_bitfield,
@@ -124,7 +128,7 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
             unsigned int next_idx;
             for (;;)
             {
-                unsigned int rand_idx = rand() % (nbytes*8);
+                unsigned int rand_idx = rand() % (nbytes*8); // TODO: Is this correct?
                 if (bitfield_get(peer->bitfield, rand_idx) && // They have it
                         !bitfield_get(our_bitfield, rand_idx)) // We don't have it
                 {
@@ -270,7 +274,7 @@ int peer_handle_periodic(struct peer_info *peer, int our_peer_id, bitfield_t our
                     {
                         break;
                     }
-                } 
+                }
                 // j is now the index of the peer in pref_ids if it is, or k if not
                 if (peers[i].state == PEER_WAIT_UNCHOKED)
                 {
@@ -283,6 +287,7 @@ int peer_handle_periodic(struct peer_info *peer, int our_peer_id, bitfield_t our
                 {
                     if (j < k) // send unchoke to new preferred peer
                     {
+                        peers[i].optimistic_flag = 0; // mark peer as preferred
                         send_unchoke(preferred_ids[j]);
                     }
                 }
@@ -293,9 +298,49 @@ int peer_handle_periodic(struct peer_info *peer, int our_peer_id, bitfield_t our
         if ((time(NULL) - last_m_interval_start) >= m)  // m time has elapsed
         {
             last_m_interval_start = time(NULL);
-            // send choke to weakest peer
-            // send unchoke
-            //log_optimistic_unchoke(our_peer_id, new_peer);
+            // pick a random index in range(num_peers), check if interested
+            int rand_index;
+            for (;;)
+            {
+                rand_index = rand() % num_peers;
+                int interesting = find_interesting_piece(our_bitfield, 
+                        peers[rand_index].bitfield);
+                if (interesting == INCORRECT_MSG_TYPE)
+                {
+                    fprintf(stderr, "peer_handle_periodic(): incompatible message type\n");
+                }
+                else if (interesting == NO_INTERESTING_PIECE)
+                {
+                    continue;
+                }
+                else // now find a choked peer
+                {
+                    if (peers[rand_index].state == PEER_CHOKED)
+                    {
+                        // choke last optimistic peer if they're still optimistic
+                        if (last_optimistic_peer < 0) // handle case when we begin
+                        {
+                            last_optimistic_peer = rand_index;
+                        }
+                        if (peers[last_optimistic_peer].optimistic_flag == 1)
+                        {
+                            peers[last_optimistic_peer].optimistic_flag = 0;
+                            send_choke(last_optimistic_peer);
+                        }
+                        peers[rand_index].optimistic_flag = 1;
+                        last_optimistic_peer = rand_index;
+                        send_unchoke(rand_index);
+                        break;
+                    }
+                    else // don't choose someone already unchoked for optimistic peer
+                    {
+                        continue;
+                    }
+                }
+                
+
+            }
+            log_optimistic_unchoke(our_peer_id, rand_index);
         }
     }
     return 0;
