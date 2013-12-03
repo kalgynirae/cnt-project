@@ -86,21 +86,6 @@ int main(int argc, char *argv[])
     init_bitfield(our_bitfield, we_have_file);
 
     /*
-     * Test the various log message functions
-     */
-    log_connect(1000, 1001);
-    int preferred[3] = {1003, 1004, 1005};
-    log_change_preferred(1000, 3, preferred);
-    log_optimistic_unchoke(1000, 1001);
-    log_unchoked_by(1000, 1001);
-    log_receive_choke(1000, 1001);
-    log_received_have(1000, 1001);
-    log_received_interested(1000, 1001);
-    log_received_not_interested(1000, 1001);
-    log_downloaded_piece(1000, 1001);
-    log_downloaded_file(1000);
-
-    /*
      * Open a socket from which to receive things
      */
     int listen_socket_fd = open_socket_and_listen(RECEIVE_PORT);
