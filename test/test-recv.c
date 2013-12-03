@@ -130,15 +130,13 @@ int main(int argc, char *argv[])
 
     unsigned int payload_len;
     message_t type;
-    unsigned char *payload = NULL;
+    unsigned char payload[5000];
 
     int i;
     for (i = 0 ; i < 8 ; i++)
     {
         type = recv_msg(sockfd, &payload_len, payload);
         process_msg(payload, payload_len, type);
-        if (payload != NULL) { free(payload); }      //Don't forget this!!!
-        payload = NULL;
         printf("\n");
     }
 
