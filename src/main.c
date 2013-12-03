@@ -198,8 +198,20 @@ int main(int argc, char *argv[])
                         fprintf(stderr, "Receiving data to a socket not yet "
                                         "assigned to a peer\n");
 
-                        // TODO: Receive a handshake message, extract the peer
-                        // ID, and save `socket` as that peer's socket_fd
+                        message_t type = recv_msg(socket, &payload_len, payload);
+                        if (type != HANDSHAKE)
+                        {
+                            fprintf(stderr, "Received a non-handshake to a "
+                                            "new socket?!? um...\n");
+                        }
+
+                        unsigned int new_peer_id = unpack_int(payload);
+                        for (i = 0; i < num_peers; i++)
+                        {
+                            if (peers[i].peer_id == new_peer_id) {
+                                peers[i].socket_fd = socket;
+                            }
+                        }
                     }
                 }
             }
