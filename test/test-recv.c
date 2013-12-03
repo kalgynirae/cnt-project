@@ -61,7 +61,7 @@ void process_msg(unsigned char *content, int nbytes, message_t type)
             break;
         case PIECE:
             printf("PIECE \n");
-            extract_and_save_piece(nbytes, content);
+            extract_and_save_piece(nbytes, content, 4);
             break;
         default:
             break;
