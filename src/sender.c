@@ -67,7 +67,7 @@ int send_piece(int sock_fd, unsigned int piece_idx, int piece_size, int peer_id)
     int len = read_piece(piece_idx, (char**)&content, piece_size, peer_id);
     int payload_len = PIECE_IDX_LEN + len;
     unsigned char payload[payload_len];
-    pack_int(len, payload);     //write piece len to start of payload
+    pack_int(piece_idx, payload);     //write piece len to start of payload
     memcpy(payload + PIECE_IDX_LEN, content, len);  //write content after index
     free(content);
 
