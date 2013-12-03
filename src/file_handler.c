@@ -49,7 +49,7 @@ int file_merge(char* FILENAME, int FS, int PS, int P_ID){
 	int i, j;
 	fpw = fopen(FILENAME,"w");
 	for(j = 1; j <= (FS/PS); j++){//write each piece of file
-		sprintf(FILEREAD, "\\peer_%d\\piece_%d", P_ID, j);
+		sprintf(FILEREAD, "runtime/peer_%d/piece_%d", P_ID, j);
 		fpr = fopen(FILEREAD,"r");
 		if(fpr == NULL){
 			printf("ERROR: file piece %d does not exist\n", j);
@@ -108,17 +108,21 @@ int read_piece(unsigned int piece_idx, char** buffer, int PS, int P_ID)
  * len is the length of the content contained in buffer
  * return amount written on success or negative number on error
  */
-int write_piece(unsigned int piece_idx, unsigned int len, char* buffer)
+int write_piece(unsigned int piece_idx, unsigned int len, char* buffer, int P_ID)
 {
     //convert the piece index into the corresponding file path
-    //error if file already exists
     //create file and write content to file
-    //TODO: replace with real file-reader code
-    printf("write_piece not implemented yet! For now,\n");
-    char s[len + 1];
-    memcpy(s, buffer, len); 
-    s[len] = '\0';
-    printf("piece %d content: %s\n", piece_idx, s);
-    
+	
+	FILE *fpw;//file pointer for writing to file
+	char FILEWRITE [20];//file path of piece to be written
+	
+	sprintf(FILEWRITE, "runtime/peer_%d/piece_%d", P_ID, piece_idx);
+	fpw = fopen(FILEWRITE,"w");
+	int i;
+	for(i = 0; i < len; i++){//write piece of file byte by byte
+		fprintf(fpw, "%c", buffer[i]);
+	}
+	fclose(fpw);
+	
     return 0;
 }
