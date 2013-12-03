@@ -32,7 +32,7 @@ void read_cfg(char* cfg_file_name)
 }
 
 struct peer_info* read_peers(char* cfg_file_name, int *num_peers,
-                             int our_peer_id)
+                             int our_peer_id, int *we_have_file)
 {
     struct peer_info *peers;
     int peer_count = 0;        //number of peers in file
@@ -74,6 +74,10 @@ struct peer_info* read_peers(char* cfg_file_name, int *num_peers,
                 }
                 peers[i] = temp_info;
                 i++;
+            }
+            else
+            {
+                *we_have_file = temp_info.has_file;
             }
         }
 

@@ -20,6 +20,7 @@
 
 //global configuration options
 extern struct common_cfg g_config;
+extern int g_bitfield_len;
 
 int main(int argc, char *argv[])
 {
@@ -30,7 +31,6 @@ int main(int argc, char *argv[])
     }
 
     struct peer_info *peers = NULL;
-    bitfield_t our_bitfield;
 
     int num_peers;
     int i;
@@ -46,7 +46,8 @@ int main(int argc, char *argv[])
     printf("PieceSize = %d\n", g_config.piece_size);
 
     int our_peer_id = atoi(argv[1]);
-    peers = read_peers(PEER_CFG_PATH, &num_peers, our_peer_id);
+    int we_have_file;
+    peers = read_peers(PEER_CFG_PATH, &num_peers, our_peer_id, &we_have_file);
     if (peers == NULL)
     {
         fprintf(stderr, "Exiting after read_peers() error.\n");
@@ -64,6 +65,10 @@ int main(int argc, char *argv[])
         printf("state: %d\n", info.state);
         printf("socket_fd: %d\n", info.socket_fd);
     }
+
+    char bagels[g_bitfield_len];
+    bitfield_t our_bitfield = (bitfield_t) bagels;
+    init_bitfield(our_bitfield, we_have_file);
 
     /*
      * Test the various log message functions
