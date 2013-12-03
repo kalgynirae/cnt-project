@@ -6,6 +6,7 @@
 #include "init.h"
 #include "receiver.h"
 #include "sender.h"
+#include "socket.h"
 #include "peer_log.h"
 
 time_t last_p_interval_start;
