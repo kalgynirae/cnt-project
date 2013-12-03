@@ -8,9 +8,9 @@ struct bitfield_seg
     int idx;            //index of sectiongg
 };
 // initialize state variables from lib/peer.h
-last_p_interval_start = time(NULL);
-last_m_interval_start = time(NULL);
-last_optimistic_peer = -1;
+time_t last_p_interval_start = time(NULL);
+time_t last_m_interval_start = time(NULL);
+int last_optimistic_peer = -1;
 
 int peer_handle_data(struct peer_info *peer, message_t msg_type, 
         unsigned char *payload, int nbytes, bitfield_t our_bitfield,
@@ -218,7 +218,8 @@ int peer_handle_periodic(struct peer_info *peer, int our_peer_id, bitfield_t our
             last_p_interval_start = time(NULL);
             // find the k fastest peers, store in preferred_ids
             int i, j;
-            int preferred_ids[k] = { 0 }; // Should initialize all values to 0
+            int preferred_ids[k];
+            memset(preferred_ids, 0, k); // initialize whole array to 0's
             for (i = 0; i < num_peers; i++)
             {
                 // first check if interested, if not skip
@@ -337,8 +338,6 @@ int peer_handle_periodic(struct peer_info *peer, int our_peer_id, bitfield_t our
                         continue;
                     }
                 }
-                
-
             }
             log_optimistic_unchoke(our_peer_id, rand_index);
         }
