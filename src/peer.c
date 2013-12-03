@@ -393,3 +393,9 @@ int bitfield_set(bitfield_t bitfield, int idx)
     bitfield[idx / 8] = (section | mask);
     return 0;
 }
+
+void init_bitfield(bitfield_t bitfield, int has_piece)
+{
+    int val = has_piece ? 0xFF : 0x00;
+    memset(bitfield, val, g_bitfield_len);
+}
