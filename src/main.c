@@ -64,14 +64,18 @@ int main(int argc, char *argv[])
             our_port);
     if (peers == NULL)
     {
+        fprintf(stderr, "Exiting after read_peers() error.\n");
         exit(EXIT_FAILURE);
     }
 
+    // Initialize peer bitfields
     for (i = 0 ; i < num_peers ; i++)
     {
         peers[i].bitfield = malloc(g_bitfield_len);
         init_bitfield(peers[i].bitfield, 0);
     }
+
+    // Split file into pieces if necessary
     if (we_have_file)
     {   //divide file into segments, save to peer directory
         file_split(g_config.file_name, 
@@ -80,17 +84,18 @@ int main(int argc, char *argv[])
                 our_peer_id);
     }
 
-    if (peers == NULL)
-    {
-        fprintf(stderr, "Exiting after read_peers() error.\n");
-        exit(EXIT_FAILURE);
-    }
+    // Print our info
+    printf("========== US ==========\n");
+    printf("our_peer_id: %d\n", our_peer_id);
+    printf("our_port: %s\n", our_port);
+    printf("we_have_file: %d\n", we_have_file);
 
+    // Print peer info
     for (i = 0 ; i < num_peers ; i++)
     {
         struct peer_info info = peers[i];
 
-        printf("========== PEERS ========== \n");
+        printf("========== PEERS ==========\n");
         printf("peer_id: %d\n", info.peer_id);
         printf("  hostname: %s\n", info.hostname);
         printf("  port: %s\n", info.port);
