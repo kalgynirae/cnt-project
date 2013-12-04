@@ -133,8 +133,9 @@ int main(int argc, char *argv[])
     int peer_n;
 
     // Info for doing peer choking/unchoking
-    time_t last_p_interval_start = time(NULL);
-    time_t last_m_interval_start = time(NULL);
+    time_t last_unchoke_time = time(NULL);
+    int last_unchoke_index = -1;
+    time_t last_optimistic = time(NULL);
     int last_optimistic_peer = -1;
 
     /*
@@ -272,6 +273,21 @@ int main(int argc, char *argv[])
         for (i = 0; i < num_peers; i++)
         {
             peer_handle_periodic(&peers[i], our_peer_id, our_bitfield, peers, num_peers);
+        }
+
+        // Fake picking some peers to unchoke
+        if (time(NULL) - last_unchoke_time > g_config.unchoke_interval)
+        {
+            last_unchoke_time = time(NULL);
+            last_unchoke_index = (last_unchoke_index + 1) % num_peers;
+            for (i = 0; i < g_config.n_preferred_neighbors; i++)
+            {
+                send_unchoke(peers[(last_unchoke_index + i) % num_peers].to_fd);
+            }
+            for (i = g_config.n_preferred_neighbors; i < num_peers; i++)
+            {
+                send_choke(peers[(last_unchoke_index + i) % num_peers].to_fd);
+            }
         }
 
     } // End of select() loop
