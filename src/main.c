@@ -218,9 +218,14 @@ int main(int argc, char *argv[])
                         }
 
                         unsigned int new_peer_id = unpack_int(payload);
+
+                        fprintf(stderr, "handshake from %d\n", new_peer_id);
+
                         for (i = 0; i < num_peers; i++)
                         {
                             if (peers[i].peer_id == new_peer_id) {
+                                fprintf(stderr, "assign socket %d to peer %d\n", 
+                                        socket, new_peer_id);
                                 peers[i].socket_fd = socket;
                             }
                         }
@@ -262,11 +267,14 @@ int main(int argc, char *argv[])
                 }
                 else if (interesting == NO_INTERESTING_PIECE)
                 {
+                    fprintf(stderr, "%d has no interesting pieces", 
+                            peers[i].peer_id);
                     peers[i].pieces_this_interval = 0;
                     continue;
                 }
                 else // they are interesting!
                 {
+                    fprintf(stderr, "%d has interesting pieces", peers[i].peer_id);
                     for (j = 0; j < k; j++)
                     {
                         if (peers[i].pieces_this_interval >
@@ -303,6 +311,8 @@ int main(int argc, char *argv[])
                 {
                     if (preferred_ids[j] == peers[i].peer_id)
                     {
+                        fprintf(stderr, "%d is currently preferred", 
+                                peers[i].peer_id);
                         break;
                     }
                 }
@@ -312,6 +322,7 @@ int main(int argc, char *argv[])
                 {
                     if (j == k) // send choke to old preferred peer
                     {
+                        fprintf(stderr, "choking %d", preferred_ids[j]); 
                         send_choke(preferred_ids[j]);
                     }
                 }
@@ -320,6 +331,7 @@ int main(int argc, char *argv[])
                     if (j < k) // send unchoke to new preferred peer
                     {
                         peers[i].optimistic_flag = 0; // mark peer as preferred
+                        fprintf(stderr, "unchoking %d", preferred_ids[j]); 
                         send_unchoke(preferred_ids[j]);
                     }
                 }
@@ -344,6 +356,8 @@ int main(int argc, char *argv[])
                 }
                 else if (interesting == NO_INTERESTING_PIECE)
                 {
+                    fprintf(stderr, "%d has nothing interesting", 
+                            peers[rand_index].peer_id); 
                     continue;
                 }
                 else // now find a choked peer
