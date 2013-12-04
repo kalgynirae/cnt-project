@@ -13,9 +13,6 @@
 #define OPEN_SOCKET_LISTEN 1
 #define OPEN_SOCKET_CONNECT 2
 
-fd_set master;
-int max_fd;
-
 /*
  * Try to connect to the peer described by the given peer_info.
  *

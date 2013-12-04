@@ -1,5 +1,8 @@
 #include "socket.h"
 
+fd_set read_fds;
+int max_fd;
+
 int open_socket(char *hostname, char *port, int mode)
 {
     int s;  // for temporarily storing a function's return status
@@ -93,7 +96,7 @@ int open_socket(char *hostname, char *port, int mode)
     freeaddrinfo(result);
 
     // Add the socket to the global set and increase max_fd
-    FD_SET(s, &master);
+    FD_SET(s, &read_fds);
     if (max_fd < s)
     {
         max_fd = s;
@@ -108,6 +111,7 @@ int make_socket_to_peer(struct peer_info *info)
     int s = open_socket(info->hostname, info->port, OPEN_SOCKET_CONNECT);
     if (s != -1)
     {
+        fprintf(stderr, "assign socket %d to peer %d\n", s, info->peer_id);
         info->socket_fd = s;
         return 0;
     }

@@ -25,9 +25,8 @@ extern struct common_cfg g_config;
 extern int g_bitfield_len;
 
 // Lists of sockets to listen to
-extern fd_set master;
+extern fd_set read_fds;
 extern int max_fd;
-fd_set read_fds;
 
 void ensure_peer_dir_exists(int id);
 
@@ -118,9 +117,8 @@ int main(int argc, char *argv[])
      * Set up parameters for select()
      */
     // Construct the lists of file descriptors
-    FD_ZERO(&master);
     FD_ZERO(&read_fds);
-    FD_SET(listen_socket_fd, &master);
+    FD_SET(listen_socket_fd, &read_fds);
     max_fd = listen_socket_fd;
 
     // Allocate a buffer to store data read from socket
@@ -157,9 +155,6 @@ int main(int argc, char *argv[])
         tv.tv_sec = 1;
         tv.tv_usec = 0;
 
-        // Dunno why this is necessary, but we've confirmed that it is.
-        memcpy(&read_fds, &master, sizeof(master));
-
         // Call select()
         int nready = select(max_fd + 1, &read_fds, NULL, NULL, &tv);
         if (nready == -1)
@@ -178,7 +173,7 @@ int main(int argc, char *argv[])
         {
             if (FD_ISSET(socket, &read_fds))
             {
-                fprintf(stderr, "main: socket %d has stuff to read\n", socket);
+                fprintf(stderr, "main: socket %d is flagged\n", socket);
 
                 if (socket == listen_socket_fd)
                 {
@@ -190,9 +185,11 @@ int main(int argc, char *argv[])
                         perror("accept()");
                         exit(EXIT_FAILURE);
                     }
+                    fprintf(stderr, "main: accept()'d to new socket %d\n",
+                            new_fd);
 
                     // Add new socket to the set and increase max_fd
-                    FD_SET(new_fd, &master);
+                    FD_SET(new_fd, &read_fds);
                     if (max_fd < new_fd)
                     {
                         max_fd = new_fd;

@@ -235,7 +235,7 @@ int peer_handle_periodic(struct peer_info *peer, int our_peer_id, bitfield_t our
         fprintf(stderr, "\tstate=CHOKED\n");
         // Do nothing?
     }
-    fprintf(stderr, "peer_handle_periodic returning\n");
+    //fprintf(stderr, "peer_handle_periodic returning\n");
     return 0;
 }
 
