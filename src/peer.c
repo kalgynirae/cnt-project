@@ -138,21 +138,17 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
             unsigned int next_idx;
             for (;;)
             {
-                unsigned int rand_idx = rand() % (nbytes*8); // TODO: Is this correct?
-                if (bitfield_get(peer->bitfield, rand_idx) && // They have it
-                        !bitfield_get(our_bitfield, rand_idx)) // We don't have it
+                unsigned int rand_idx = find_interesting_piece(our_bitfield, peer->bitfield);
+                for (i = 0; i < num_peers; i++)
                 {
-                    for (i = 0; i < num_peers; i++)
-                    {
-                        if (peers[i].requested == rand_idx) // We have asked for it
-                        {
-                            break;
-                        }
+                    if (peers[i].requested == rand_idx) // We have asked for it
+                    { 
+                        break;
                     }
-                    if (i == num_peers) // Oh good we haven't asked for it
-                    {
-                        next_idx = rand_idx;
-                    }
+                }
+                if (i == num_peers) // Oh good we haven't asked for it
+                {
+                    next_idx = rand_idx;
                 }
             }
             send_request(peer->socket_fd, next_idx);
@@ -164,6 +160,7 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
         }
         else if (msg_type == REQUEST)
         {
+            fprintf(stderr, "\tREQUEST\n");
             unsigned int requested_idx = unpack_int(payload);
             send_piece(peer->socket_fd, requested_idx, g_config.piece_size, peer->peer_id);
         }
