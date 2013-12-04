@@ -28,11 +28,11 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
         }
         else if (interesting == NO_INTERESTING_PIECE)
         {
-            send_not_interested(peer->socket_fd);
+            send_not_interested(peer->to_fd);
         }
         else
         {
-            send_interested(peer->socket_fd);
+            send_interested(peer->to_fd);
         }
         log_received_have(our_peer_id, peer->peer_id);
     }
@@ -57,13 +57,20 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
         // Check the handshake for validity
         if ((sender = unpack_int(payload)) >= 0)
         {
-            // Send a return handshake if we didn't initiate the connection
+            // If we haven't made a return connection yet, do so and send a
+            // response handshake.
             if (peer->state == PEER_NOT_CONNECTED)
             {
-                send_handshake(peer->socket_fd, our_peer_id);
+                int s = make_socket_to_peer(peer);
+                if (s == -1)
+                {
+                    fprintf(stderr, "peer_handle_periodic(): error making "
+                                    "socket\n");
+                }
+                send_handshake(peer->to_fd, our_peer_id);
             }
             // Send our bitfield; wait for their bitfield
-            send_bitfield(peer->socket_fd, our_bitfield);
+            send_bitfield(peer->to_fd, our_bitfield);
             peer->time_last_message_sent = time(NULL);
             peer->state = PEER_WAIT_FOR_BITFIELD;
             log_connect(our_peer_id, peer->peer_id);
@@ -87,12 +94,12 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
         }
         else if (interesting == NO_INTERESTING_PIECE)
         {
-            send_not_interested(peer->socket_fd);
+            send_not_interested(peer->to_fd);
             peer->state = PEER_CHOKED;
         }
         else
         {
-            send_interested(peer->socket_fd);
+            send_interested(peer->to_fd);
             peer->state = PEER_CHOKED;
         }
     }
@@ -154,18 +161,18 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
                     next_idx = rand_idx;
                 }
             }
-            send_request(peer->socket_fd, next_idx);
+            send_request(peer->to_fd, next_idx);
             // send haves to all peers
             for (i = 0; i < num_peers; i++)
             {
-                send_have(peers[i].socket_fd, piece_idx);
+                send_have(peers[i].to_fd, piece_idx);
             }
         }
         else if (msg_type == REQUEST)
         {
             fprintf(stderr, "\tREQUEST\n");
             unsigned int requested_idx = unpack_int(payload);
-            send_piece(peer->socket_fd, requested_idx, g_config.piece_size, peer->peer_id);
+            send_piece(peer->to_fd, requested_idx, g_config.piece_size, peer->peer_id);
         }
         else
         {
@@ -200,7 +207,7 @@ int peer_handle_periodic(struct peer_info *peer, int our_peer_id, bitfield_t our
             }
             else
             {
-                send_handshake(peer->socket_fd, our_peer_id);
+                send_handshake(peer->to_fd, our_peer_id);
                 // Start a timer and attach it to the peer_info struct
                 peer->time_last_message_sent = time(NULL);
                 peer->state = PEER_WAIT_FOR_HANDSHAKE;

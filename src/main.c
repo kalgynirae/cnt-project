@@ -24,10 +24,6 @@
 extern struct common_cfg g_config;
 extern int g_bitfield_len;
 
-// Lists of sockets to listen to
-extern fd_set read_fds;
-extern int max_fd;
-
 void ensure_peer_dir_exists(int id);
 
 int main(int argc, char *argv[])
@@ -101,7 +97,8 @@ int main(int argc, char *argv[])
         printf("  port: %s\n", info.port);
         printf("  has_file: %d\n", info.has_file);
         printf("  state: %d\n", info.state);
-        printf("  socket_fd: %d\n", info.socket_fd);
+        printf("  to_fd: %d\n", info.to_fd);
+        printf("  from_fd: %d\n", info.from_fd);
     }
 
     char bagels[g_bitfield_len];
@@ -122,9 +119,11 @@ int main(int argc, char *argv[])
      * Set up parameters for select()
      */
     // Construct the lists of file descriptors
+    fd_set master, read_fds;
+    FD_ZERO(&master);
     FD_ZERO(&read_fds);
-    FD_SET(listen_socket_fd, &read_fds);
-    max_fd = listen_socket_fd;
+    FD_SET(listen_socket_fd, &master);
+    int max_fd = listen_socket_fd;
 
     // Allocate a buffer to store data read from socket
     unsigned char payload[g_config.piece_size];
@@ -160,6 +159,9 @@ int main(int argc, char *argv[])
         tv.tv_sec = 1;
         tv.tv_usec = 0;
 
+        // Dunno why this is necessary, but we've confirmed that it is.
+        memcpy(&read_fds, &master, sizeof(master));
+
         // Call select()
         int nready = select(max_fd + 1, &read_fds, NULL, NULL, &tv);
         if (nready == -1)
@@ -194,7 +196,7 @@ int main(int argc, char *argv[])
                             new_fd);
 
                     // Add new socket to the set and increase max_fd
-                    FD_SET(new_fd, &read_fds);
+                    FD_SET(new_fd, &master);
                     if (max_fd < new_fd)
                     {
                         max_fd = new_fd;
@@ -205,7 +207,7 @@ int main(int argc, char *argv[])
                     // Let's figure out which peer this socket belongs to.
                     for (peer_n = 0; peer_n < num_peers; peer_n++)
                     {
-                        if (socket == peers[peer_n].socket_fd)
+                        if (socket == peers[peer_n].from_fd)
                             break;
                     }
                     if (peer_n < num_peers)
@@ -254,9 +256,9 @@ int main(int argc, char *argv[])
                             continue;
                         }
 
-                        fprintf(stderr, "assign socket %d to peer %d\n",
+                        fprintf(stderr, "set from_fd=%d for peer %d\n",
                                 socket, new_peer_id);
-                        peers[i].socket_fd = socket;
+                        peers[i].from_fd = socket;
 
                         peer_handle_data(&peers[i], type, payload,
                                          payload_len, our_bitfield, peers,
