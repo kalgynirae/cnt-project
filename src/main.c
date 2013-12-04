@@ -41,6 +41,7 @@ int main(int argc, char *argv[])
 
     read_cfg(COMMON_CFG_PATH);
 
+    printf("========== CONFIG ========== \n");
     printf("NumberOfPreferredNeighbors = %d\n", g_config.n_preferred_neighbors);
     printf("UnchokingInterval = %d\n", g_config.unchoke_interval);
     printf("OptimisticUnchokingInterval = %d\n", 
@@ -57,6 +58,11 @@ int main(int argc, char *argv[])
     char our_port[PORT_DIGITS];
     peers = read_peers(PEER_CFG_PATH, &num_peers, our_peer_id, &we_have_file, 
             our_port);
+    if (peers == NULL)
+    {
+        exit(EXIT_FAILURE);
+    }
+
     for (i = 0 ; i < num_peers ; i++)
     {
         peers[i].bitfield = malloc(g_bitfield_len);
@@ -80,12 +86,13 @@ int main(int argc, char *argv[])
     {
         struct peer_info info = peers[i];
 
+        printf("========== PEERS ========== \n");
         printf("peer_id: %d\n", info.peer_id);
-        printf("hostname: %s\n", info.hostname);
-        printf("port: %s\n", info.port);
-        printf("has_file: %d\n", info.has_file);
-        printf("state: %d\n", info.state);
-        printf("socket_fd: %d\n", info.socket_fd);
+        printf("  hostname: %s\n", info.hostname);
+        printf("  port: %s\n", info.port);
+        printf("  has_file: %d\n", info.has_file);
+        printf("  state: %d\n", info.state);
+        printf("  socket_fd: %d\n", info.socket_fd);
     }
 
     char bagels[g_bitfield_len];
