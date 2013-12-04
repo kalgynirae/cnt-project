@@ -54,7 +54,9 @@ int main(int argc, char *argv[])
     ensure_peer_dir_exists(our_peer_id);
     
     int we_have_file;
-    peers = read_peers(PEER_CFG_PATH, &num_peers, our_peer_id, &we_have_file);
+    char our_port[PORT_DIGITS];
+    peers = read_peers(PEER_CFG_PATH, &num_peers, our_peer_id, &we_have_file, 
+            our_port);
     if (we_have_file)
     {   //divide file into segments, save to peer directory
         file_split(g_config.file_name, 
@@ -75,7 +77,7 @@ int main(int argc, char *argv[])
 
         printf("peer_id: %d\n", info.peer_id);
         printf("hostname: %s\n", info.hostname);
-        printf("port: %d\n", info.port);
+        printf("port: %s\n", info.port);
         printf("has_file: %d\n", info.has_file);
         printf("state: %d\n", info.state);
         printf("socket_fd: %d\n", info.socket_fd);
@@ -88,7 +90,7 @@ int main(int argc, char *argv[])
     /*
      * Open a socket from which to receive things
      */
-    int listen_socket_fd = open_socket_and_listen(RECEIVE_PORT);
+    int listen_socket_fd = open_socket_and_listen(our_port);
     if (listen_socket_fd == -1)
     {
         fprintf(stderr, "open_socket_and_listen() failure\n");

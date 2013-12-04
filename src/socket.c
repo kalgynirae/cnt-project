@@ -97,12 +97,8 @@ int open_socket(char *hostname, char *port, int mode)
 
 int make_socket_to_peer(struct peer_info *info)
 {
-    // We need to pass the port as a string... go figure.
-    char port[PORT_DIGITS + 1];
-    snprintf(port, PORT_DIGITS + 1, "%d", info->port);
-
     // Open the socket; store it in the peer_info
-    int s = open_socket(info->hostname, port, OPEN_SOCKET_CONNECT);
+    int s = open_socket(info->hostname, info->port, OPEN_SOCKET_CONNECT);
     if (s != -1)
     {
         info->socket_fd = s;

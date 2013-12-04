@@ -32,7 +32,7 @@ void read_cfg(char* cfg_file_name)
 }
 
 struct peer_info* read_peers(char* cfg_file_name, int *num_peers,
-                             int our_peer_id, int *we_have_file)
+                             int our_peer_id, int *we_have_file, char *our_port)
 {
     struct peer_info *peers;
     int peer_count = 0;        //number of peers in file
@@ -78,6 +78,7 @@ struct peer_info* read_peers(char* cfg_file_name, int *num_peers,
             else
             {
                 *we_have_file = temp_info.has_file;
+                strcpy(our_port, temp_info.port);
             }
         }
 
@@ -132,10 +133,10 @@ struct peer_info parse_peer_line(char *line)
     info.peer_id = atoi(strtok(line, " "));        
 
     char* hostname = (strtok(NULL, " "));
-    info.hostname = malloc(strlen(hostname) + 1);
     strcpy(info.hostname, hostname);
 
-    info.port = atoi(strtok(NULL, " "));
+    char* portname = strtok(NULL, " ");
+    strcpy(info.port, portname);
     info.has_file = atoi(strtok(NULL, " "));
 
     info.state = 0;
