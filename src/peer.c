@@ -113,16 +113,17 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
             // increment pieces_this_interval field of peer_info
             peer->pieces_this_interval++;
             // check if we downloaded the entire file, write appropriate log messages
+            // TODO: WHAT IS HAPPENING HERE?????
             int i; // counter for everything in this branch
             for (i = 0; i < g_bitfield_len; i++)
-            {
+            {   //this is not checking all the bits
                 if (!bitfield_get(our_bitfield, i))
                 {
                     break;
                 }
             }
             if (i == g_bitfield_len) // meaning we just got the last piece
-            {
+            {   //are we setting the other peer's has file based on our bitfield?
                 peer->has_file = 1;
                 log_downloaded_file(our_peer_id);
             }

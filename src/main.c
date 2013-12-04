@@ -57,6 +57,11 @@ int main(int argc, char *argv[])
     char our_port[PORT_DIGITS];
     peers = read_peers(PEER_CFG_PATH, &num_peers, our_peer_id, &we_have_file, 
             our_port);
+    for (i = 0 ; i < num_peers ; i++)
+    {
+        peers[i].bitfield = malloc(g_bitfield_len);
+        init_bitfield(peers[i].bitfield, 0);
+    }
     if (we_have_file)
     {   //divide file into segments, save to peer directory
         file_split(g_config.file_name, 
@@ -401,6 +406,12 @@ int main(int argc, char *argv[])
         }
 
     } // End of select() loop
+
+    //free bitfields
+    for (i = 0 ; i < num_peers ; i++)
+    {
+        free(peers[i].bitfield);
+    }
     return 0;
 }
 
