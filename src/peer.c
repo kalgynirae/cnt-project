@@ -175,6 +175,8 @@ int peer_handle_periodic(struct peer_info *peer, int our_peer_id, bitfield_t our
         if (our_peer_id < peer->peer_id)
         {
             int s = make_socket_to_peer(peer);
+            fprintf(stderr, "sending handshake to %d using sock_fd %d\n",
+                    peer->peer_id, s);
             if (s == -1)
             {
                 fprintf(stderr, "peer_handle_periodic(): error making socket");
@@ -190,7 +192,8 @@ int peer_handle_periodic(struct peer_info *peer, int our_peer_id, bitfield_t our
         // Self-edge when timeout occurs, re-send handshake
         if (time(NULL) - peer->time_last_message_sent >= HANDSHAKE_TIMEOUT_TIME)
         {
-            // Send our handshake message
+            fprintf(stderr, "timeout on handshake to %d\n", peer->peer_id);
+            // TODO: Send our handshake message - umm... should we have code here?
             // Start a timer and attach it to the peer_info struct
             peer->time_last_message_sent = time(NULL);
         }
@@ -201,6 +204,7 @@ int peer_handle_periodic(struct peer_info *peer, int our_peer_id, bitfield_t our
         // bitfield was sent because the peer has no interesting pieces.
         if (time(NULL) - peer->time_last_message_sent >= BITFIELD_TIMEOUT_TIME)
         {
+            fprintf(stderr, "timeout on bitfield to %d\n", peer->peer_id);
             peer->time_last_message_sent = time(NULL);
             peer->state = PEER_NOT_CONNECTED;
         }
