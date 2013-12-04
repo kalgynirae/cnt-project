@@ -26,7 +26,7 @@ void read_cfg(char* cfg_file_name)
             fprintf(stderr, "read_cfg(): Error closing file");
         }
     }
-    g_bitfield_len = g_config.file_size / g_config.piece_size;
+    g_bitfield_len = g_config.file_size / g_config.piece_size / 8;
     //add 1 if not an even division to accomodate last partial piece
     g_bitfield_len += (g_config.file_size % g_config.piece_size == 0) ? 0 : 1;
 }
