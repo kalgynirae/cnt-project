@@ -3,6 +3,8 @@
 #include <string.h>
 #include "file_handler.h"
 
+// TODO: Fix paths to use ~/project/peer_{id}/{filename}
+
 int file_split(char* FILENAME, int FS, int PS, int P_ID){
 	//FILENAME: cfg.file_name
 	//FS: cfg.file_size
