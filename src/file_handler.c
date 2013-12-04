@@ -12,7 +12,7 @@ int file_split(char* FILENAME, int FS, int PS, int P_ID){
 	FILE *fpr;//file pointer for reading file
 	FILE *fpw;//file pointer for writing to file
 	char c;//character read from file
-	char FILEWRITE [20];//name of file piece to be written
+	char FILEWRITE [32];//name of file piece to be written
 	int i, j;
 	fpr = fopen(FILENAME,"r");
 	if(fpr == NULL){
@@ -45,7 +45,7 @@ int file_merge(char* FILENAME, int FS, int PS, int P_ID){
 	FILE *fpr;//file pointer for reading file
 	FILE *fpw;//file pointer for writing to file
 	char c;//character read from file
-	char FILEREAD [20];//name of file piece to be read
+	char FILEREAD [32];//name of file piece to be read
 	int i, j;
 	fpw = fopen(FILENAME,"w");
 	for(j = 1; j <= (FS/PS); j++){//write each piece of file
@@ -79,7 +79,7 @@ int read_piece(unsigned int piece_idx, char** buffer, int PS, int P_ID)
 	char c;//character read from file
 	int FS = 0;//counter to be returned telling the file size
 	*buffer = malloc(PS);//allocate space for buffer equal to the piece size
-	char FILEREAD [20];//name of file piece to be read
+	char FILEREAD [32];//name of file piece to be read
 	sprintf(FILEREAD, "runtime/peer_%d/piece_%d", P_ID, piece_idx);
 	fpr = fopen(FILEREAD,"r");
 	if(fpr == NULL){
@@ -114,7 +114,7 @@ int write_piece(unsigned int piece_idx, unsigned int len, char* buffer, int P_ID
     //create file and write content to file
 	
 	FILE *fpw;//file pointer for writing to file
-	char FILEWRITE [20];//file path of piece to be written
+	char FILEWRITE [32];//file path of piece to be written
 	
 	sprintf(FILEWRITE, "runtime/peer_%d/piece_%d", P_ID, piece_idx);
 	fpw = fopen(FILEWRITE,"w");

@@ -29,4 +29,7 @@ int bitfield_set(bitfield_t bitfield, int idx);
 //initialize bitfield
 void init_bitfield(bitfield_t bitfield, int has_piece);
 
+//print bitfield
+void print_bitfield(FILE *stream, bitfield_t bitfield);
+
 #endif

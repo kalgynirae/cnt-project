@@ -26,13 +26,13 @@ void read_cfg(char* cfg_file_name)
             fprintf(stderr, "read_cfg(): Error closing file");
         }
     }
-    g_bitfield_len = g_config.file_size / g_config.piece_size;
+    g_bitfield_len = g_config.file_size / g_config.piece_size / 8;
     //add 1 if not an even division to accomodate last partial piece
     g_bitfield_len += (g_config.file_size % g_config.piece_size == 0) ? 0 : 1;
 }
 
 struct peer_info* read_peers(char* cfg_file_name, int *num_peers,
-                             int our_peer_id, int *we_have_file)
+                             int our_peer_id, int *we_have_file, char *our_port)
 {
     struct peer_info *peers;
     int peer_count = 0;        //number of peers in file
@@ -78,6 +78,7 @@ struct peer_info* read_peers(char* cfg_file_name, int *num_peers,
             else
             {
                 *we_have_file = temp_info.has_file;
+                strcpy(our_port, temp_info.port);
             }
         }
 
@@ -109,7 +110,8 @@ void parse_cfg_line(char *line, struct common_cfg *cfg)
         cfg->optimistic_unchoke_interval = atoi(val);
     }
     else if (strcmp(key, "FileName") == 0) {
-        cfg->file_name  = malloc(strlen(val) + 1);
+        val[strlen(val) - 1] = '\0';   //strip newline
+        cfg->file_name  = malloc(strlen(val));
         strcpy(cfg->file_name, val);
     }
     else if (strcmp(key, "FileSize") == 0) {
@@ -131,10 +133,10 @@ struct peer_info parse_peer_line(char *line)
     info.peer_id = atoi(strtok(line, " "));        
 
     char* hostname = (strtok(NULL, " "));
-    info.hostname = malloc(strlen(hostname) + 1);
     strcpy(info.hostname, hostname);
 
-    info.port = atoi(strtok(NULL, " "));
+    char* portname = strtok(NULL, " ");
+    strcpy(info.port, portname);
     info.has_file = atoi(strtok(NULL, " "));
 
     info.state = 0;

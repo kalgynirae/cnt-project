@@ -12,7 +12,6 @@
 #define OPEN_SOCKET_NEITHER 0
 #define OPEN_SOCKET_LISTEN 1
 #define OPEN_SOCKET_CONNECT 2
-#define PORT_DIGITS 5
 
 /*
  * Open a socket and bind or connect as requested.

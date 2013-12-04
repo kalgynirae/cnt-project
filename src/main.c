@@ -2,7 +2,9 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <sys/select.h>
 #include <sys/socket.h>
 #include <unistd.h>
@@ -21,6 +23,8 @@
 //global configuration options
 extern struct common_cfg g_config;
 extern int g_bitfield_len;
+
+void ensure_peer_dir_exists(int id);
 
 int main(int argc, char *argv[])
 {
@@ -46,8 +50,26 @@ int main(int argc, char *argv[])
     printf("PieceSize = %d\n", g_config.piece_size);
 
     int our_peer_id = atoi(argv[1]);
+    //make sure runtime/peer_{id} exists
+    ensure_peer_dir_exists(our_peer_id);
+    
     int we_have_file;
-    peers = read_peers(PEER_CFG_PATH, &num_peers, our_peer_id, &we_have_file);
+    char our_port[PORT_DIGITS];
+    peers = read_peers(PEER_CFG_PATH, &num_peers, our_peer_id, &we_have_file, 
+            our_port);
+    for (i = 0 ; i < num_peers ; i++)
+    {
+        peers[i].bitfield = malloc(g_bitfield_len);
+        init_bitfield(peers[i].bitfield, 0);
+    }
+    if (we_have_file)
+    {   //divide file into segments, save to peer directory
+        file_split(g_config.file_name, 
+                g_config.file_size, 
+                g_config.piece_size, 
+                our_peer_id);
+    }
+
     if (peers == NULL)
     {
         fprintf(stderr, "Exiting after read_peers() error.\n");
@@ -60,7 +82,7 @@ int main(int argc, char *argv[])
 
         printf("peer_id: %d\n", info.peer_id);
         printf("hostname: %s\n", info.hostname);
-        printf("port: %d\n", info.port);
+        printf("port: %s\n", info.port);
         printf("has_file: %d\n", info.has_file);
         printf("state: %d\n", info.state);
         printf("socket_fd: %d\n", info.socket_fd);
@@ -71,24 +93,9 @@ int main(int argc, char *argv[])
     init_bitfield(our_bitfield, we_have_file);
 
     /*
-     * Test the various log message functions
-     */
-    log_connect(1000, 1001);
-    int preferred[3] = {1003, 1004, 1005};
-    log_change_preferred(1000, 3, preferred);
-    log_optimistic_unchoke(1000, 1001);
-    log_unchoked_by(1000, 1001);
-    log_receive_choke(1000, 1001);
-    log_received_have(1000, 1001);
-    log_received_interested(1000, 1001);
-    log_received_not_interested(1000, 1001);
-    log_downloaded_piece(1000, 1001);
-    log_downloaded_file(1000);
-
-    /*
      * Open a socket from which to receive things
      */
-    int listen_socket_fd = open_socket_and_listen(RECEIVE_PORT);
+    int listen_socket_fd = open_socket_and_listen(our_port);
     if (listen_socket_fd == -1)
     {
         fprintf(stderr, "open_socket_and_listen() failure\n");
@@ -216,9 +223,14 @@ int main(int argc, char *argv[])
                         }
 
                         unsigned int new_peer_id = unpack_int(payload);
+
+                        fprintf(stderr, "handshake from %d\n", new_peer_id);
+
                         for (i = 0; i < num_peers; i++)
                         {
                             if (peers[i].peer_id == new_peer_id) {
+                                fprintf(stderr, "assign socket %d to peer %d\n", 
+                                        socket, new_peer_id);
                                 peers[i].socket_fd = socket;
                             }
                         }
@@ -239,6 +251,9 @@ int main(int argc, char *argv[])
         int m = g_config.optimistic_unchoke_interval;
         if ((time(NULL) - last_p_interval_start) >= p) // p time has elapsed
         {
+            fprintf(stderr, "---unchoke interval expired---\n");
+            fprintf(stderr, "our_bitfield: ");
+            print_bitfield(stderr, our_bitfield);
             last_p_interval_start = time(NULL);
             // find the k fastest peers, store in preferred_ids
             int i, j;
@@ -246,11 +261,15 @@ int main(int argc, char *argv[])
             memset(preferred_ids, 0, k); // initialize whole array to 0's
             for (i = 0; i < num_peers; i++)
             {
+                fprintf(stderr, "\tchecking peer %d, bitfield=", peers[i].peer_id);
+                print_bitfield(stderr, peers[i].bitfield);
                 // first check if interested, if not skip
                 // store the transmission rates for each interested peer in a
                 // list
                 int interesting = find_interesting_piece(our_bitfield,
                                                          peers[i].bitfield);
+                fprintf(stderr, "\tfind_interesting_piece returned %d\n", interesting);
+                // first check if interested, if not skip
                 if (interesting == INCORRECT_MSG_TYPE)
                 {
                     fprintf(stderr, "peer_handle_periodic(): incompatible "
@@ -260,11 +279,14 @@ int main(int argc, char *argv[])
                 }
                 else if (interesting == NO_INTERESTING_PIECE)
                 {
+                    fprintf(stderr, "%d has no interesting pieces", 
+                            peers[i].peer_id);
                     peers[i].pieces_this_interval = 0;
                     continue;
                 }
                 else // they are interesting!
                 {
+                    fprintf(stderr, "%d has interesting pieces", peers[i].peer_id);
                     for (j = 0; j < k; j++)
                     {
                         if (peers[i].pieces_this_interval >
@@ -301,6 +323,8 @@ int main(int argc, char *argv[])
                 {
                     if (preferred_ids[j] == peers[i].peer_id)
                     {
+                        fprintf(stderr, "%d is currently preferred", 
+                                peers[i].peer_id);
                         break;
                     }
                 }
@@ -310,6 +334,7 @@ int main(int argc, char *argv[])
                 {
                     if (j == k) // send choke to old preferred peer
                     {
+                        fprintf(stderr, "choking %d", preferred_ids[j]); 
                         send_choke(preferred_ids[j]);
                     }
                 }
@@ -318,6 +343,7 @@ int main(int argc, char *argv[])
                     if (j < k) // send unchoke to new preferred peer
                     {
                         peers[i].optimistic_flag = 0; // mark peer as preferred
+                        fprintf(stderr, "unchoking %d", preferred_ids[j]); 
                         send_unchoke(preferred_ids[j]);
                     }
                 }
@@ -327,6 +353,7 @@ int main(int argc, char *argv[])
         // Calculate new optimistic peer
         if ((time(NULL) - last_m_interval_start) >= m)  // m time has elapsed
         {
+            fprintf(stderr, "determining new optimistic peer\n");
             last_m_interval_start = time(NULL);
             // pick a random index in range(num_peers), check if interested
             int rand_index;
@@ -342,6 +369,8 @@ int main(int argc, char *argv[])
                 }
                 else if (interesting == NO_INTERESTING_PIECE)
                 {
+                    fprintf(stderr, "%d has nothing interesting", 
+                            peers[rand_index].peer_id); 
                     continue;
                 }
                 else // now find a choked peer
@@ -377,5 +406,22 @@ int main(int argc, char *argv[])
         }
 
     } // End of select() loop
+
+    //free bitfields
+    for (i = 0 ; i < num_peers ; i++)
+    {
+        free(peers[i].bitfield);
+    }
     return 0;
+}
+
+void ensure_peer_dir_exists(int id)
+{
+    struct stat st = {0};
+
+    char dir[32];
+    sprintf(dir, "runtime/peer_%d", id);
+    if (stat(dir, &st) == -1) {
+        mkdir(dir, 0700);
+    }
 }

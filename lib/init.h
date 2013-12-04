@@ -15,6 +15,9 @@
 #define HANDSHAKE_TIMEOUT_TIME 5
 #define BITFIELD_TIMEOUT_TIME 15
 
+#define HOSTNAME_LEN 64      //# of chars in host name
+#define PORT_DIGITS 5
+
 // common configuration options for p2p session
 struct common_cfg
 {
@@ -29,8 +32,8 @@ struct common_cfg
 struct peer_info
 {
     int peer_id;        // unique identifier of peer
-    char* hostname;     // host name
-    int port;           // port on which peer listens
+    char hostname[HOSTNAME_LEN];     // host name
+    char port[PORT_DIGITS];           // port on which peer listens
     int has_file;       // 1 if peer has complete file, else 0
     int state;          // current state of peer
     int socket_fd;      // descriptor of open socket for sending to peer
@@ -48,7 +51,8 @@ void read_cfg(char* cfg_file_name);
  * returns number of peers
  */
 struct peer_info* read_peers(char* cfg_file_name, int* num_peers,
-                             int our_peer_id, int *we_have_file);
+                             int our_peer_id, int *we_have_file, char *our_port);
+                             
 
 // parse a line of the common config file
 void parse_cfg_line(char *line, struct common_cfg *cfg);
