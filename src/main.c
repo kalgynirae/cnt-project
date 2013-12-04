@@ -246,6 +246,9 @@ int main(int argc, char *argv[])
         int m = g_config.optimistic_unchoke_interval;
         if ((time(NULL) - last_p_interval_start) >= p) // p time has elapsed
         {
+            fprintf(stderr, "---unchoke interval expired---\n");
+            fprintf(stderr, "our_bitfield: ");
+            print_bitfield(stderr, our_bitfield);
             last_p_interval_start = time(NULL);
             // find the k fastest peers, store in preferred_ids
             int i, j;
@@ -253,11 +256,15 @@ int main(int argc, char *argv[])
             memset(preferred_ids, 0, k); // initialize whole array to 0's
             for (i = 0; i < num_peers; i++)
             {
+                fprintf(stderr, "\tchecking peer %d, bitfield=", peers[i].peer_id);
+                print_bitfield(stderr, peers[i].bitfield);
                 // first check if interested, if not skip
                 // store the transmission rates for each interested peer in a
                 // list
                 int interesting = find_interesting_piece(our_bitfield,
                                                          peers[i].bitfield);
+                fprintf(stderr, "\tfind_interesting_piece returned %d\n", interesting);
+                // first check if interested, if not skip
                 if (interesting == INCORRECT_MSG_TYPE)
                 {
                     fprintf(stderr, "peer_handle_periodic(): incompatible "
@@ -341,6 +348,7 @@ int main(int argc, char *argv[])
         // Calculate new optimistic peer
         if ((time(NULL) - last_m_interval_start) >= m)  // m time has elapsed
         {
+            fprintf(stderr, "determining new optimistic peer\n");
             last_m_interval_start = time(NULL);
             // pick a random index in range(num_peers), check if interested
             int rand_index;

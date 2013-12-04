@@ -109,11 +109,7 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
             // update our_bitfield
             bitfield_set(our_bitfield, piece_idx);
             fprintf(stderr, "\tnew bitfield: ");
-            int j;
-            for (j = 0 ; j < g_bitfield_len ; j++) {
-                fprintf(stderr, "%x", our_bitfield[j]);
-            }
-            fprintf(stderr, "\n");
+            print_bitfield(stderr, our_bitfield);
             // increment pieces_this_interval field of peer_info
             peer->pieces_this_interval++;
             // check if we downloaded the entire file, write appropriate log messages
@@ -289,4 +285,15 @@ void init_bitfield(bitfield_t bitfield, int has_file)
 {
     int val = has_file ? 0xFF : 0x00;
     memset(bitfield, val, g_bitfield_len);
+}
+
+//print bitfield
+void print_bitfield(FILE *stream, bitfield_t bitfield)
+{
+    if (bitfield == NULL) { fprintf(stderr, "bitfield null! abort! abort!\n"); }
+    int j;
+    for (j = 0 ; j < g_bitfield_len ; j++) {
+        fprintf(stream, "%x ", bitfield[j] & 0xFF);
+    }
+    fprintf(stream, "\n");
 }
