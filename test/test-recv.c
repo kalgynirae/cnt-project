@@ -6,7 +6,7 @@
 #include "receiver.h"
 #include "socket.h"
 
-#define PORT 3490
+#define PORT "3490"
 #define COMMON_CFG_PATH "config/Common.cfg"
 
 //global configuration options
@@ -63,8 +63,8 @@ int main(int argc, char *argv[])
     read_cfg(COMMON_CFG_PATH);      //to find bitfield length
 
     struct peer_info info;
-    info.hostname = argv[1];
-    info.port = PORT;
+    strcpy(info.hostname, argv[1]);
+    strcpy(info.port, PORT);
 
     int s = make_socket_to_peer(&info);
     if (s == -1) {

@@ -36,7 +36,8 @@ struct peer_info
     char port[PORT_DIGITS];           // port on which peer listens
     int has_file;       // 1 if peer has complete file, else 0
     int state;          // current state of peer
-    int socket_fd;      // descriptor of open socket for sending to peer
+    int to_fd;          // descriptor of open socket for sending to peer
+    int from_fd;        // descriptor of open socket for receiving from peer
     int time_last_message_sent; // time in seconds since THE EPOCH, using time()
     bitfield_t bitfield;
     unsigned int requested;     // piece index requested from this peer

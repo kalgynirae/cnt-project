@@ -101,7 +101,8 @@ int make_socket_to_peer(struct peer_info *info)
     int s = open_socket(info->hostname, info->port, OPEN_SOCKET_CONNECT);
     if (s != -1)
     {
-        info->socket_fd = s;
+        fprintf(stderr, "set to_fd=%d for peer %d\n", s, info->peer_id);
+        info->to_fd = s;
         return 0;
     }
     return -1;
