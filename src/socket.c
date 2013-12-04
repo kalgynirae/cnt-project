@@ -92,6 +92,13 @@ int open_socket(char *hostname, char *port, int mode)
     // Free the linked list from earlier
     freeaddrinfo(result);
 
+    // Add the socket to the global set and increase max_fd
+    FD_SET(s, &master);
+    if (max_fd < s)
+    {
+        max_fd = s;
+    }
+
     return socket_fd;
 }
 

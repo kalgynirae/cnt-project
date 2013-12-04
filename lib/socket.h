@@ -13,12 +13,8 @@
 #define OPEN_SOCKET_LISTEN 1
 #define OPEN_SOCKET_CONNECT 2
 
-/*
- * Open a socket and bind or connect as requested.
- *
- * Returns a socket descriptor if successful or -1 on error.
- */
-int open_socket(char *hostname, char *port, int connect_or_bind);
+fd_set master;
+int max_fd;
 
 /*
  * Try to connect to the peer described by the given peer_info.
@@ -32,9 +28,6 @@ int make_socket_to_peer(struct peer_info *info);
 
 /*
  * Try to open a socket and listen for connections on the given port.
- *
- * If successful, the socket file descriptor will be stored in the passed
- * peer_info struct.
  *
  * Returns the socket descriptor or -1 on error.
  */

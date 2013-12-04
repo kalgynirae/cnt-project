@@ -51,12 +51,18 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
         fprintf(stderr, "\tUNCHOKE\n");
         log_unchoked_by(our_peer_id, peer->peer_id);
     }
-    else if (peer->state == PEER_WAIT_FOR_HANDSHAKE && msg_type == HANDSHAKE)
-    {   
+    else if (msg_type == HANDSHAKE)
+    {
         fprintf(stderr, "\tHANDSHAKE\n");
-        // Transition to bitfield if rcv'd handshake and handshake is valid
+        // Check the handshake for validity
         if ((sender = unpack_int(payload)) >= 0)
         {
+            // Send a return handshake if we didn't initiate the connection
+            if (peer->state == PEER_NOT_CONNECTED)
+            {
+                send_handshake(peer->socket_fd, our_peer_id);
+            }
+            // Send our bitfield; wait for their bitfield
             send_bitfield(peer->socket_fd, our_bitfield);
             peer->time_last_message_sent = time(NULL);
             peer->state = PEER_WAIT_FOR_BITFIELD;
@@ -208,9 +214,8 @@ int peer_handle_periodic(struct peer_info *peer, int our_peer_id, bitfield_t our
         if (time(NULL) - peer->time_last_message_sent >= HANDSHAKE_TIMEOUT_TIME)
         {
             fprintf(stderr, "\t\ttimeout on handshake to %d\n", peer->peer_id);
-            // TODO: Send our handshake message - umm... should we have code here?
-            // Start a timer and attach it to the peer_info struct
-            peer->time_last_message_sent = time(NULL);
+            // Reset back to NOT_CONNECTED
+            peer->state = PEER_NOT_CONNECTED;
         }
     }
     else if (peer->state == PEER_WAIT_FOR_BITFIELD)

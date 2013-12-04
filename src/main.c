@@ -24,6 +24,11 @@
 extern struct common_cfg g_config;
 extern int g_bitfield_len;
 
+// Lists of sockets to listen to
+extern fd_set master;
+extern int max_fd;
+fd_set read_fds;
+
 void ensure_peer_dir_exists(int id);
 
 int main(int argc, char *argv[])
@@ -113,11 +118,10 @@ int main(int argc, char *argv[])
      * Set up parameters for select()
      */
     // Construct the lists of file descriptors
-    fd_set master, read_fds;
     FD_ZERO(&master);
     FD_ZERO(&read_fds);
     FD_SET(listen_socket_fd, &master);
-    int max_fd = listen_socket_fd;
+    max_fd = listen_socket_fd;
 
     // Allocate a buffer to store data read from socket
     unsigned char payload[g_config.piece_size];
@@ -147,8 +151,6 @@ int main(int argc, char *argv[])
      */
     for (;;)
     {
-        read_fds = master;
-
         // We want to timeout after one second of waiting. This has to be
         // reset each time because select() modifies it.
         struct timeval tv;
@@ -176,6 +178,8 @@ int main(int argc, char *argv[])
         {
             if (FD_ISSET(socket, &read_fds))
             {
+                fprintf(stderr, "main: socket %d has stuff to read\n", socket);
+
                 if (socket == listen_socket_fd)
                 {
                     // This is the listening socket, so we're going to call
@@ -204,7 +208,8 @@ int main(int argc, char *argv[])
                     }
                     if (peer_n < num_peers)
                     {
-                        fprintf(stderr, "Receiving data from peer %d\n", peer_n);
+                        fprintf(stderr, "main: Receiving data from peer %d\n",
+                                peer_n);
 
                         message_t type = recv_msg(socket, &payload_len, payload);
                         if (type == INVALID_MSG)
@@ -219,28 +224,41 @@ int main(int argc, char *argv[])
                     }
                     else
                     {
-                        fprintf(stderr, "Receiving data to a socket not yet "
-                                        "assigned to a peer\n");
-
                         message_t type = recv_msg(socket, &payload_len, payload);
                         if (type != HANDSHAKE)
                         {
-                            fprintf(stderr, "Received a non-handshake to a "
-                                            "new socket?!? um...\n");
+                            fprintf(stderr, "main: Received a non-handshake to "
+                                            "a new socket. I can't do anything "
+                                            "with this.\n");
+                            continue;
                         }
 
                         unsigned int new_peer_id = unpack_int(payload);
 
-                        fprintf(stderr, "handshake from %d\n", new_peer_id);
+                        fprintf(stderr, "main: Received handshake from peer %d\n",
+                                new_peer_id);
 
                         for (i = 0; i < num_peers; i++)
                         {
-                            if (peers[i].peer_id == new_peer_id) {
-                                fprintf(stderr, "assign socket %d to peer %d\n", 
-                                        socket, new_peer_id);
-                                peers[i].socket_fd = socket;
+                            if (peers[i].peer_id == new_peer_id)
+                            {
+                                break;
                             }
                         }
+                        if (i == num_peers)
+                        {
+                            fprintf(stderr, "%d is not a valid peer id; "
+                                            "ignoring\n", i);
+                            continue;
+                        }
+
+                        fprintf(stderr, "assign socket %d to peer %d\n",
+                                socket, new_peer_id);
+                        peers[i].socket_fd = socket;
+
+                        peer_handle_data(&peers[i], type, payload,
+                                         payload_len, our_bitfield, peers,
+                                         num_peers, our_peer_id);
                     }
                 }
             }
