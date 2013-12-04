@@ -13,6 +13,7 @@ void pack_int(unsigned int val, unsigned char bytes[4]);
 
 int send_handshake(int sock_fd, int sender_id)
 {
+    fprintf(stderr, ">>> Sending handshake through socket %d\n", sock_fd);
     unsigned char msg[32];
 
     strncpy((char*)msg, HS_GREETING, HEADER_SIZE);      //prefix with greeting
@@ -24,26 +25,32 @@ int send_handshake(int sock_fd, int sender_id)
 
 int send_choke(int sock_fd)
 {
+    fprintf(stderr, ">>> Sending choke through socket %d\n", sock_fd);
     return norm_send(sock_fd, CHOKE, NULL, 0);
 }
 
 int send_unchoke(int sock_fd)
 {
+    fprintf(stderr, ">>> Sending unchoke through socket %d\n", sock_fd);
     return norm_send(sock_fd, UNCHOKE, NULL, 0);
 }
 
 int send_interested(int sock_fd)
 {
+    fprintf(stderr, ">>> Sending interested through socket %d\n", sock_fd);
     return norm_send(sock_fd, INTERESTED, NULL, 0);
 }
 
 int send_not_interested(int sock_fd)
 {
+    fprintf(stderr, ">>> Sending not interested through socket %d\n", sock_fd);
     return norm_send(sock_fd, NOT_INTERESTED, NULL, 0);
 }
 
 int send_have(int sock_fd, unsigned int piece_idx)
 {
+    fprintf(stderr, ">>> Sending have of piece %d through socket %d\n",
+           piece_idx, sock_fd);
     unsigned char idx[4];
     pack_int(piece_idx, idx);   //convert index to 4 bytes for sending
     return norm_send(sock_fd, HAVE, idx, PIECE_IDX_LEN);
@@ -51,11 +58,14 @@ int send_have(int sock_fd, unsigned int piece_idx)
 
 int send_bitfield(int sock_fd, bitfield_t bitfield)
 {
+    fprintf(stderr, ">>> Sending bitfield through socket %d\n", sock_fd);
     return norm_send(sock_fd, BITFIELD, bitfield, g_bitfield_len);
 }
 
 int send_request(int sock_fd, unsigned int piece_idx)
 {
+    fprintf(stderr, ">>> Sending request for piece %d through socket %d\n",
+           piece_idx, sock_fd);
     unsigned char idx[4];
     pack_int(piece_idx, idx);   //convert index to 4 bytes for sending
     return norm_send(sock_fd, REQUEST, idx, PIECE_IDX_LEN);
@@ -63,6 +73,8 @@ int send_request(int sock_fd, unsigned int piece_idx)
 
 int send_piece(int sock_fd, unsigned int piece_idx, int piece_size, int peer_id)
 {
+    fprintf(stderr, ">>> Sending piece %d through socket %d\n", piece_idx,
+           sock_fd);
     unsigned char *content;
     int len = read_piece(piece_idx, (char**)&content, piece_size, peer_id);
     int payload_len = PIECE_IDX_LEN + len;

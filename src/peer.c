@@ -12,7 +12,7 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
         unsigned char *payload, int nbytes, bitfield_t our_bitfield,
         struct peer_info *peers, int num_peers, int our_peer_id)
 {
-    fprintf(stderr, "peer_handle_data from %d\n", peer->peer_id);
+    fprintf(stderr, "peer_handle_data(%d)\n", peer->peer_id);
     int sender;
     if (msg_type == HAVE)
     {
@@ -190,12 +190,10 @@ int peer_handle_periodic(struct peer_info *peer, int our_peer_id, bitfield_t our
             int s = make_socket_to_peer(peer);
             if (s == -1)
             {
-                fprintf(stderr, "peer_handle_periodic(): error making socket");
+                fprintf(stderr, "peer_handle_periodic(): error making socket\n");
             }
             else
             {
-                fprintf(stderr, "\tsending handshake to %d using sock_fd %d\n",
-                        peer->peer_id, s);
                 send_handshake(peer->socket_fd, our_peer_id);
                 // Start a timer and attach it to the peer_info struct
                 peer->time_last_message_sent = time(NULL);
