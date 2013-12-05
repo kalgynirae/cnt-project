@@ -299,6 +299,7 @@ int main(int argc, char *argv[])
                 int j, random_index;
                 for (j = 0; j < num_peers; j++)
                 {
+                    peers[j].choked_by_us = 1;
                     send_choke(peers[j].to_fd);
                 }
                 int peers_unchoked = 0;
