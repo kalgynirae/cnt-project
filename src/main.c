@@ -326,6 +326,25 @@ int main(int argc, char *argv[])
         {
         }
 
+        // Check whether everyone has the file
+        if (we_have_file)
+        {
+            int lolnope = 0;
+            int i;
+            for (i = 0; i < num_peers; i++)
+            {
+                if (!peers[i].has_file)
+                {
+                    lolnope = 1;
+                    break;
+                }
+            }
+            if (!lolnope)
+            {
+                // We are done.
+                exit(0);
+            }
+        }
     } // End of select() loop
 
     //free bitfields
