@@ -276,7 +276,7 @@ int main(int argc, char *argv[])
         }
 
         // Check whether we have the whole file yet
-        if (bitfield_filled(our_bitfield))
+        if ((!we_have_file) && bitfield_filled(our_bitfield))
         {
             we_have_file = 1;
             log_downloaded_file(our_peer_id);
