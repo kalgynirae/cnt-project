@@ -135,8 +135,8 @@ int main(int argc, char *argv[])
     // Info for doing peer choking/unchoking
     time_t last_unchoke_time = time(NULL);
     int last_unchoke_index = -1;
-    time_t last_optimistic = time(NULL);
-    int last_optimistic_peer = -1;
+    time_t last_optimistic_time = time(NULL);
+    int last_optimistic_index = -1;
 
     /*
      * select() loop
@@ -214,7 +214,7 @@ int main(int argc, char *argv[])
                     if (peer_n < num_peers)
                     {
                         fprintf(stderr, "main: Receiving data from peer %d\n",
-                                peer_n);
+                                peers[peer_n].peer_id);
 
                         message_t type = recv_msg(socket, &payload_len, payload);
                         if (type == INVALID_MSG)
@@ -282,13 +282,14 @@ int main(int argc, char *argv[])
             log_downloaded_file(our_peer_id);
         }
 
+        // Update preferred neighbors if the time interval has passed
         if (time(NULL) - last_unchoke_time > g_config.unchoke_interval)
         {
+            last_unchoke_time = time(NULL);
             if (we_have_file)
             {
                 // Pick random preferred neighbors (this isn't random; it just
                 // cycles, but it's probably close enough)
-                last_unchoke_time = time(NULL);
                 last_unchoke_index = (last_unchoke_index + 1) % num_peers;
                 for (i = 0; i < g_config.n_preferred_neighbors; i++)
                 {
@@ -302,7 +303,6 @@ int main(int argc, char *argv[])
             else
             {
                 // TODO: Calculate preferred neighbors
-                last_unchoke_time = time(NULL);
                 last_unchoke_index = (last_unchoke_index + 1) % num_peers;
                 for (i = 0; i < g_config.n_preferred_neighbors; i++)
                 {
@@ -313,6 +313,12 @@ int main(int argc, char *argv[])
                     send_choke(peers[(last_unchoke_index + i) % num_peers].to_fd);
                 }
             }
+        }
+
+        // TODO: Pick a new optimisticly unchoked peer
+        if (time(NULL) - last_optimistic_time >
+                g_config.optimistic_unchoke_interval)
+        {
         }
 
     } // End of select() loop
