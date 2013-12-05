@@ -44,6 +44,8 @@ int main(int argc, char *argv[])
     print_bytes(b2);
     printf("\n");
 
+    int requested[g_num_pieces * 8];
+    memset(requested, 0, g_num_pieces * 8);
 
     int idx = 0, i = 0;
     for (i = 0 ; i < g_num_pieces ; i++)
@@ -52,8 +54,13 @@ int main(int argc, char *argv[])
         {
             printf("Failed to find interesting piece\n");
         }
+        if (requested[idx])
+        {
+            printf("asking for %d again!!\n", idx);
+        }
         printf("getting %d\n", idx);
         bitfield_set(b1, idx);
+        requested[idx] = 1;
         print_bytes(b1);
     }
 
