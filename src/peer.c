@@ -71,7 +71,6 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
             }
             // Send our bitfield; wait for their bitfield
             send_bitfield(peer->to_fd, our_bitfield);
-            peer->time_last_message_sent = time(NULL);
             peer->state = PEER_WAIT_FOR_BITFIELD;
             log_connect(our_peer_id, peer->peer_id);
         }
@@ -180,11 +179,11 @@ int peer_handle_periodic(struct peer_info *peer, int our_peer_id, bitfield_t our
         struct peer_info *peers, int num_peers)
 {
     fprintf(stderr, "peer_handle_periodic(%d)\n", peer->peer_id);
-    // No FD will trigger when the Peer is not connected
+
     if (peer->state == PEER_NOT_CONNECTED)
     {
         fprintf(stderr, "\tstate=PEER_NOT_CONNECTED\n");
-        // Only send handshake if our peer id is less than theirs
+        // Only initiate connections to peers with larger peer ids
         if (our_peer_id < peer->peer_id)
         {
             int s = make_socket_to_peer(peer);
@@ -215,14 +214,8 @@ int peer_handle_periodic(struct peer_info *peer, int our_peer_id, bitfield_t our
     else if (peer->state == PEER_WAIT_FOR_BITFIELD)
     {
         fprintf(stderr, "\tstate=PEER_WAIT_FOR_BITFIELD\n");
-        // In the event of a timeout, go back to state 0, implying that no
-        // bitfield was sent because the peer has no interesting pieces.
-        if (time(NULL) - peer->time_last_message_sent >= BITFIELD_TIMEOUT_TIME)
-        {
-            fprintf(stderr, "\t\ttimeout on bitfield to %d\n", peer->peer_id);
-            peer->time_last_message_sent = time(NULL);
-            peer->state = PEER_NOT_CONNECTED;
-        }
+        // Continue waiting for bitfield. Forever. Because we always send
+        // bitfields.
     }
     else if (peer->state == PEER_CHOKED)
     {
