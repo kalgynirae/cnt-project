@@ -12,13 +12,13 @@ void peer_handle_data(struct peer_info *peer, message_t msg_type,
         unsigned char *payload, int nbytes, bitfield_t our_bitfield,
         struct peer_info *peers, int num_peers, int our_peer_id)
 {
-    fprintf(stderr, "peer_handle_data(%d)\n", peer->peer_id);
+    fprintf(stderr, "-----peer_handle_data(%d) ", peer->peer_id); // no \n!
     int sender;
     if (msg_type == HAVE)
     {
         // update peer->bitfield based on the HAVE received
         unsigned int piece_idx = unpack_int(payload);
-        fprintf(stderr, "\tHAVE: %d\n", piece_idx);
+        fprintf(stderr, "type=HAVE: %d\n", piece_idx);
         bitfield_set(peer->bitfield, piece_idx);
 
         // send not/interested to peer
@@ -35,17 +35,17 @@ void peer_handle_data(struct peer_info *peer, message_t msg_type,
     }
     else if (msg_type == NOT_INTERESTED)
     {
-        fprintf(stderr, "\tNOT_INTERESTED\n");
+        fprintf(stderr, "type=NOT_INTERESTED\n");
         log_received_not_interested(our_peer_id, peer->peer_id);
     }
     else if (msg_type == INTERESTED)
     {
-        fprintf(stderr, "\tINTERESTED\n");
+        fprintf(stderr, "type=INTERESTED\n");
         log_received_interested(our_peer_id, peer->peer_id);
     }
     else if (msg_type == UNCHOKE)
     {
-        fprintf(stderr, "\tUNCHOKE\n");
+        fprintf(stderr, "type=UNCHOKE\n");
         peer->state = PEER_WAIT_UNCHOKED;
         log_unchoked_by(our_peer_id, peer->peer_id);
 
@@ -64,7 +64,7 @@ void peer_handle_data(struct peer_info *peer, message_t msg_type,
     }
     else if (msg_type == HANDSHAKE)
     {
-        fprintf(stderr, "\tHANDSHAKE\n");
+        fprintf(stderr, "type=HANDSHAKE\n");
         // Check the handshake for validity
         if ((sender = unpack_int(payload)) >= 0)
         {
@@ -92,7 +92,7 @@ void peer_handle_data(struct peer_info *peer, message_t msg_type,
     }
     else if (msg_type == BITFIELD)
     {
-        fprintf(stderr, "\tBITFIELD\n");
+        fprintf(stderr, "type=BITFIELD\n");
         // update peer's bitfield in peer_info
         memcpy(peer->bitfield, payload, g_bitfield_len);
 
@@ -114,13 +114,13 @@ void peer_handle_data(struct peer_info *peer, message_t msg_type,
     }
     else if (msg_type == CHOKE)
     {
-        fprintf(stderr, "\tCHOKE\n");
+        fprintf(stderr, "type=CHOKE\n");
         peer->state = PEER_CHOKED;
         log_receive_choke(our_peer_id, peer->peer_id);
     }
     else if (msg_type == PIECE)
     {
-        fprintf(stderr, "\tPIECE\n");
+        fprintf(stderr, "type=PIECE\n");
         // write the payload to disc
         unsigned int piece_idx = unpack_int(payload);
         fprintf(stderr, "\tidx: %d\n", piece_idx);
@@ -159,7 +159,7 @@ void peer_handle_data(struct peer_info *peer, message_t msg_type,
     }
     else if (msg_type == REQUEST)
     {
-        fprintf(stderr, "\tREQUEST\n");
+        fprintf(stderr, "type=REQUEST\n");
         if (peer->choked_by_us)
         {
             fprintf(stderr, "peer_handle_data(): ignoring request from peer %d "
@@ -182,7 +182,7 @@ void peer_handle_data(struct peer_info *peer, message_t msg_type,
 void peer_handle_periodic(struct peer_info *peer, int our_peer_id, bitfield_t our_bitfield,
         struct peer_info *peers, int num_peers)
 {
-    fprintf(stderr, "peer_handle_periodic(%d)\n", peer->peer_id);
+    fprintf(stderr, "-----peer_handle_periodic(%d) ", peer->peer_id); // no \n!
 
     // Check whether this peer has the whole file yet
     if (bitfield_filled(peer->bitfield))
@@ -192,7 +192,7 @@ void peer_handle_periodic(struct peer_info *peer, int our_peer_id, bitfield_t ou
 
     if (peer->state == PEER_NOT_CONNECTED)
     {
-        fprintf(stderr, "\tstate=PEER_NOT_CONNECTED\n");
+        fprintf(stderr, "state=PEER_NOT_CONNECTED\n");
         // Only initiate connections to peers with larger peer ids
         if (our_peer_id < peer->peer_id)
         {
@@ -212,7 +212,7 @@ void peer_handle_periodic(struct peer_info *peer, int our_peer_id, bitfield_t ou
     }
     else if (peer->state == PEER_WAIT_FOR_HANDSHAKE)
     {
-        fprintf(stderr, "\tstate=PEER_WAIT_FOR_HANDSHAKE\n");
+        fprintf(stderr, "state=PEER_WAIT_FOR_HANDSHAKE\n");
         // Self-edge when timeout occurs, re-send handshake
         if (time(NULL) - peer->time_last_message_sent >= HANDSHAKE_TIMEOUT_TIME)
         {
@@ -223,14 +223,17 @@ void peer_handle_periodic(struct peer_info *peer, int our_peer_id, bitfield_t ou
     }
     else if (peer->state == PEER_WAIT_FOR_BITFIELD)
     {
-        fprintf(stderr, "\tstate=PEER_WAIT_FOR_BITFIELD\n");
+        fprintf(stderr, "state=PEER_WAIT_FOR_BITFIELD\n");
         // Continue waiting for bitfield. Forever. Because we always send
         // bitfields.
     }
     else if (peer->state == PEER_CHOKED)
     {
-        fprintf(stderr, "\tstate=CHOKED\n");
-        // Do nothing?
+        fprintf(stderr, "state=CHOKED\n");
+    }
+    else if (peer->state == PEER_WAIT_UNCHOKED)
+    {
+        fprintf(stderr, "state=PEER_WAIT_UNCHOKED\n");
     }
 }
 
