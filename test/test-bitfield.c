@@ -1,5 +1,5 @@
 #include "peer.h"
-#define N_PEERS 1
+#define N_PEERS 4
 
 void print_bits(bitfield_t bitfield);
 void test_bit(int idx, bitfield_t bitfield);
@@ -16,9 +16,11 @@ int main()
     g_bitfield_len = 4;     //testing only! don't set this outside of init
     unsigned char b1[4] = { 0x3, 0x0, 0x3};
     unsigned char b2[4] = { 0x8D, 0xC, 0x81};
-    unsigned char b3[4] = { 0xAA, 0xAA, 0xAA};
     //mock up peers
-    peers[0].bitfield = b3;
+    peers[0].requested = -1;
+    peers[1].requested = -1;
+    peers[2].requested = -1;
+    peers[3].requested = -1;
 
     printf("--------------------Testing has_piece--------------------\n");
 
@@ -45,6 +47,14 @@ int main()
     test_set(23, b1);
     printf("--------------------Testing find interesting--------------------\n");
     printf("should randomly select different pieces\n");
+    test_interesting(b1, b2, 4);
+    test_interesting(b2, b1, 4);
+
+    printf("now some pending requests\n");
+    peers[0].requested = 11;
+    peers[1].requested = 10;
+    peers[2].requested = 1;
+    peers[3].requested = 3;
     test_interesting(b1, b2, 4);
     test_interesting(b2, b1, 4);
 

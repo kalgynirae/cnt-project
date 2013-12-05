@@ -244,26 +244,27 @@ void peer_handle_periodic(struct peer_info *peer, int our_peer_id, bitfield_t ou
 int find_interesting_piece(bitfield_t my_bitfield, bitfield_t other_bitfield,
         struct peer_info *peers, int n_peers)
 {
-    //DEBUG
-    int q;
+    //create temporary bitfield for this functin
+    //copy our bitfield
+    bitfield_t have_or_pending = malloc(sizeof(my_bitfield));
+    memcpy(have_or_pending, my_bitfield, sizeof(my_bitfield));
+    //then set bits we have requested (pending)
+    int q, pending;
     for (q = 0 ; q < n_peers ; q++)
     {
-        printf("peers[%d].bitfield=", q);
-        int w;
-        for (w = 0 ; w < g_bitfield_len ; w++)
-        {
-            printf(" %x", peers[q].bitfield[w] & 0xFF);
+        if ((pending = peers[q].requested) != -1)
+        {   //pretend we have this piece for now
+            bitfield_set(have_or_pending, pending);
         }
-        printf("\n");
     }
-    //ENDDEBUG
+
     //find interesting byte of bitfield
     int i, j = 0;
     char interesting;   //pieces in segment other has that I don't
     struct bitfield_seg all_interesting[g_bitfield_len]; 
     for (i = 0 ; i < g_bitfield_len ; i++)
     {
-        interesting = (my_bitfield[i] ^ other_bitfield[i]) & other_bitfield[i];
+        interesting = (have_or_pending[i] ^ other_bitfield[i]) & other_bitfield[i];
         if (interesting != 0)
         {   //segment has piece of interest. store interesting bits and index
             all_interesting[j].idx = i;
@@ -271,7 +272,11 @@ int find_interesting_piece(bitfield_t my_bitfield, bitfield_t other_bitfield,
         }
     }
 
-    if (j == 0) { return -1; }  //nothing interesting
+    if (j == 0) 
+    { 
+        free(have_or_pending);
+        return -1; //nothing interesting
+    }  
 
     //randomly select byte
     struct bitfield_seg segment = all_interesting[random() % j];
@@ -285,6 +290,7 @@ int find_interesting_piece(bitfield_t my_bitfield, bitfield_t other_bitfield,
         }
     }
     //select random bit and map to overall bitfield position
+    free(have_or_pending);
     return (bits[random() % j] + 8 * segment.idx);
 }
 
