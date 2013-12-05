@@ -17,11 +17,11 @@ enum {
     PEER_WAIT_UNCHOKED
 };
 
-int peer_handle_data(struct peer_info *peer, message_t msg_type, 
+void peer_handle_data(struct peer_info *peer, message_t msg_type,
         unsigned char *payload, int nbytes, bitfield_t our_bitfield,
         struct peer_info *peers, int num_peers, int our_peer_id);
-                     
-int peer_handle_periodic(struct peer_info *peer, int our_peer_id, 
+
+void peer_handle_periodic(struct peer_info *peer, int our_peer_id,
         bitfield_t our_bitfield, struct peer_info *peers, int num_peers);
 
 //randomly choose a piece index owned by other peer and not us

@@ -293,11 +293,15 @@ int main(int argc, char *argv[])
                 last_unchoke_index = (last_unchoke_index + 1) % num_peers;
                 for (i = 0; i < g_config.n_preferred_neighbors; i++)
                 {
-                    send_unchoke(peers[(last_unchoke_index + i) % num_peers].to_fd);
+                    int temp_index = (last_unchoke_index + i) % num_peers;
+                    send_unchoke(peers[temp_index].to_fd);
+                    peers[temp_index].choked_by_us = 0;
                 }
                 for (i = g_config.n_preferred_neighbors; i < num_peers; i++)
                 {
-                    send_choke(peers[(last_unchoke_index + i) % num_peers].to_fd);
+                    int temp_index = (last_unchoke_index + i) % num_peers;
+                    send_choke(peers[temp_index].to_fd);
+                    peers[temp_index].choked_by_us = 1;
                 }
             }
             else
@@ -310,6 +314,7 @@ int main(int argc, char *argv[])
                 }
                 for (i = g_config.n_preferred_neighbors; i < num_peers; i++)
                 {
+
                     send_choke(peers[(last_unchoke_index + i) % num_peers].to_fd);
                 }
             }

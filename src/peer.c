@@ -8,7 +8,7 @@ struct bitfield_seg
     int idx;            //index of section
 };
 
-int peer_handle_data(struct peer_info *peer, message_t msg_type, 
+void peer_handle_data(struct peer_info *peer, message_t msg_type, 
         unsigned char *payload, int nbytes, bitfield_t our_bitfield,
         struct peer_info *peers, int num_peers, int our_peer_id)
 {
@@ -20,13 +20,10 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
         unsigned int piece_idx = unpack_int(payload);
         fprintf(stderr, "\tHAVE: %d\n", piece_idx);
         bitfield_set(peer->bitfield, piece_idx);
-        // send out not/interesting
+
+        // send not/interested to peer
         int interesting = find_interesting_piece(our_bitfield, peer->bitfield);
-        if (interesting == INCORRECT_MSG_TYPE)
-        {
-            fprintf(stderr, "peer_handle_data(): incompatible message type\n");
-        }
-        else if (interesting == NO_INTERESTING_PIECE)
+        if (interesting == NO_INTERESTING_PIECE)
         {
             send_not_interested(peer->to_fd);
         }
@@ -49,7 +46,21 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
     else if (msg_type == UNCHOKE)
     {
         fprintf(stderr, "\tUNCHOKE\n");
+        peer->state = PEER_WAIT_UNCHOKED;
         log_unchoked_by(our_peer_id, peer->peer_id);
+
+        // Send a request to this peer right away
+        unsigned int random_piece = find_interesting_piece(our_bitfield,
+                                                           peer->bitfield);
+        if (random_piece == NO_INTERESTING_PIECE)
+        {
+            fprintf(stderr, "we wanted to request, but no pieces are "
+                            "interesting\n");
+        }
+        else
+        {
+            send_request(peer->to_fd, random_piece);
+        }
     }
     else if (msg_type == HANDSHAKE)
     {
@@ -79,103 +90,96 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
             fprintf(stderr, "peer_handle_data(): received invalid handshake\n");
         }
     }
-    else if (peer->state == PEER_WAIT_FOR_BITFIELD && msg_type == BITFIELD)
+    else if (msg_type == BITFIELD)
     {
         fprintf(stderr, "\tBITFIELD\n");
         // update peer's bitfield in peer_info
         memcpy(peer->bitfield, payload, g_bitfield_len);
 
-        // send out not/interesting
+        // send not/interested to peer
         int interesting = find_interesting_piece(our_bitfield, peer->bitfield);
-        if (interesting == INCORRECT_MSG_TYPE)
-        {
-            fprintf(stderr, "peer_handle_data(): incompatible message type\n");
-        }
-        else if (interesting == NO_INTERESTING_PIECE)
+        if (interesting == NO_INTERESTING_PIECE)
         {
             send_not_interested(peer->to_fd);
-            peer->state = PEER_CHOKED;
         }
         else
         {
             send_interested(peer->to_fd);
+        }
+
+        if (peer->state == PEER_WAIT_FOR_BITFIELD)
+        {
             peer->state = PEER_CHOKED;
         }
     }
-    else if (peer->state == PEER_WAIT_UNCHOKED)
+    else if (msg_type == CHOKE)
     {
-        if (msg_type == CHOKE)
+        fprintf(stderr, "\tCHOKE\n");
+        peer->state = PEER_CHOKED;
+        log_receive_choke(our_peer_id, peer->peer_id);
+    }
+    else if (msg_type == PIECE)
+    {
+        fprintf(stderr, "\tPIECE\n");
+        // write the payload to disc
+        unsigned int piece_idx = unpack_int(payload);
+        fprintf(stderr, "\tidx: %d\n", piece_idx);
+        extract_and_save_piece(nbytes, payload, our_peer_id);     
+        fprintf(stderr, "\textracted and saved%d\n", piece_idx);
+        // update our_bitfield
+        bitfield_set(our_bitfield, piece_idx);
+        fprintf(stderr, "\tnew bitfield: ");
+        print_bitfield(stderr, our_bitfield);
+        // increment pieces_this_interval field of peer_info
+        peer->pieces_this_interval++;
+
+        // Log it up!
+        log_downloaded_piece(our_peer_id, piece_idx);
+
+        int i; // counter for everything in this branch
+
+        // send haves to all peers
+        for (i = 0; i < num_peers; i++)
         {
-            fprintf(stderr, "\tCHOKE\n");
-            peer->state = PEER_CHOKED;
-            log_receive_choke(our_peer_id, peer->peer_id);
+            send_have(peers[i].to_fd, piece_idx);
         }
-        else if (msg_type == PIECE)
+
+        // send new request
+        unsigned int random_piece = find_interesting_piece(our_bitfield,
+                                                           peer->bitfield);
+        if (random_piece == NO_INTERESTING_PIECE)
         {
-            fprintf(stderr, "\tPIECE\n");
-            // write the payload to disc
-            unsigned int piece_idx = unpack_int(payload); // TODO: does this break?
-            fprintf(stderr, "\tidx: %d\n", piece_idx);
-            extract_and_save_piece(nbytes, payload, our_peer_id);     
-            fprintf(stderr, "\textracted and saved%d\n", piece_idx);
-            // update our_bitfield
-            bitfield_set(our_bitfield, piece_idx);
-            fprintf(stderr, "\tnew bitfield: ");
-            print_bitfield(stderr, our_bitfield);
-            // increment pieces_this_interval field of peer_info
-            peer->pieces_this_interval++;
-
-            // Log it up!
-            log_downloaded_piece(our_peer_id, piece_idx);
-
-            int i; // counter for everything in this branch
-
-            // send new request
-            unsigned int next_idx;
-            for (;;)
-            {
-                unsigned int rand_idx = find_interesting_piece(our_bitfield, peer->bitfield);
-                for (i = 0; i < num_peers; i++)
-                {
-                    if (peers[i].requested == rand_idx) // We have asked for it
-                    { 
-                        break;
-                    }
-                }
-                if (i == num_peers) // Oh good we haven't asked for it
-                {
-                    next_idx = rand_idx;
-                }
-            }
-            send_request(peer->to_fd, next_idx);
-            // send haves to all peers
-            for (i = 0; i < num_peers; i++)
-            {
-                send_have(peers[i].to_fd, piece_idx);
-            }
-        }
-        else if (msg_type == REQUEST)
-        {
-            fprintf(stderr, "\tREQUEST\n");
-            unsigned int requested_idx = unpack_int(payload);
-            send_piece(peer->to_fd, requested_idx, g_config.piece_size, peer->peer_id);
+            fprintf(stderr, "we wanted to request, but no pieces are "
+                            "interesting\n");
         }
         else
         {
-            fprintf(stderr, "peer_handle_data(): incompatible message type\n");
+            send_request(peer->to_fd, random_piece);
+        }
+    }
+    else if (msg_type == REQUEST)
+    {
+        fprintf(stderr, "\tREQUEST\n");
+        if (peer->choked_by_us)
+        {
+            fprintf(stderr, "peer_handle_data(): ignoring request from peer %d "
+                            "because we have choked them\n", peer->peer_id);
+        }
+        else
+        {
+            unsigned int requested_idx = unpack_int(payload);
+            send_piece(peer->to_fd, requested_idx, g_config.piece_size, peer->peer_id);
         }
     }
     else
     {
         // Check what kind of message we've got and print an error
-        fprintf(stderr, "peer_handle_data(): peer %d select()'d with state: "
-                        "%d, message_type: %d\n",
-                peer->peer_id, peer->state, msg_type);
+        fprintf(stderr, "peer_handle_data(): unhandled message of type %d "
+                        "from peer %d\n", msg_type, peer->peer_id);
     }
-    return 0;
 }
 
-int peer_handle_periodic(struct peer_info *peer, int our_peer_id, bitfield_t our_bitfield,
+void peer_handle_periodic(struct peer_info *peer, int our_peer_id, bitfield_t our_bitfield,
         struct peer_info *peers, int num_peers)
 {
     fprintf(stderr, "peer_handle_periodic(%d)\n", peer->peer_id);
@@ -228,8 +232,6 @@ int peer_handle_periodic(struct peer_info *peer, int our_peer_id, bitfield_t our
         fprintf(stderr, "\tstate=CHOKED\n");
         // Do nothing?
     }
-    //fprintf(stderr, "peer_handle_periodic returning\n");
-    return 0;
 }
 
 int find_interesting_piece(bitfield_t my_bitfield, bitfield_t other_bitfield)
