@@ -9,6 +9,14 @@
 #include "socket.h"
 #include "peer_log.h"
 
+enum {
+    PEER_NOT_CONNECTED,
+    PEER_WAIT_FOR_HANDSHAKE,
+    PEER_WAIT_FOR_BITFIELD,
+    PEER_CHOKED,
+    PEER_WAIT_UNCHOKED
+};
+
 int peer_handle_data(struct peer_info *peer, message_t msg_type, 
         unsigned char *payload, int nbytes, bitfield_t our_bitfield,
         struct peer_info *peers, int num_peers, int our_peer_id);

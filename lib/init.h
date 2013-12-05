@@ -6,17 +6,10 @@
 #include <string.h>
 #include "message.h"
 
-#define PEER_NOT_CONNECTED 0
-#define PEER_WAIT_FOR_HANDSHAKE 1
-#define PEER_WAIT_FOR_BITFIELD 2
-#define PEER_CHOKED 3
-#define PEER_WAIT_UNCHOKED 4
-
 #define HANDSHAKE_TIMEOUT_TIME 5
-#define BITFIELD_TIMEOUT_TIME 15
 
-#define HOSTNAME_LEN 64      //# of chars in host name
-#define PORT_DIGITS 5
+#define HOSTNAME_LEN 512      //# of chars in host name
+#define PORT_DIGITS 6
 
 // common configuration options for p2p session
 struct common_cfg
