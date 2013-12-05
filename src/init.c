@@ -146,6 +146,9 @@ struct peer_info parse_peer_line(char *line)
     info.state = 0;
     info.to_fd = -1;
     info.from_fd = -1;
+    info.requested = -1;
+    info.choked_by_us = 1;
+    info.interested_in_us = 0;
 
     return info;
 }
