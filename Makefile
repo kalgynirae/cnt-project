@@ -32,3 +32,4 @@ test-acquisition: $(TEST_SRC) test/test-acquisition.c
 
 clean:
 	rm -r bin
+	rm -r runtime/*
