@@ -364,21 +364,15 @@ int bitfield_filled(bitfield_t bitfield)
 {
     int i;
     for (i = 0 ; i < g_bitfield_len - 1; i++)
-    {
+    {   //check all but last byte
         if (bitfield[i] != 0xFF)
         {   //not filled - piece missing
             return 0;
         }
     }
-    for(i = 0 ; i < (g_config.file_size / g_config.piece_size) % 8; i++)
-    {   //check last byte of bitfield, not necessarily full
-        if ((bitfield[g_bitfield_len - 1] & (0x1 << i)) == 0)
-        {
-            return 0;
-        }
-    }
-    
-    return 1;
+    int n_leading_zeros = (8 - (g_num_pieces % 8)) % 8;
+    unsigned char mask = 0xFF >> n_leading_zeros;
+    return (bitfield[g_bitfield_len - 1] & mask) == mask;
 }
 
 //print bitfield
