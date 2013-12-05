@@ -39,11 +39,15 @@ void peer_handle_data(struct peer_info *peer, message_t msg_type,
     {
         fprintf(stderr, "type=NOT_INTERESTED\n");
         log_received_not_interested(our_peer_id, peer->peer_id);
+
+        peer->interested_in_us = 0;
     }
     else if (msg_type == INTERESTED)
     {
         fprintf(stderr, "type=INTERESTED\n");
         log_received_interested(our_peer_id, peer->peer_id);
+
+        peer->interested_in_us = 1;
     }
     else if (msg_type == UNCHOKE)
     {

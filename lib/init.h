@@ -37,6 +37,7 @@ struct peer_info
     int pieces_this_interval;   // # of pieces completed this preferred unchoking interval
     int optimistic_flag;        // 1 if this peer was optimistically unchoked, 0 otherwise
     int choked_by_us;           // whether the peer is choked by us
+    int interested_in_us;
 };
 
 // read config file and return struct containing options
