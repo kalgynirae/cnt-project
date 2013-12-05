@@ -284,8 +284,8 @@ int find_interesting_piece(bitfield_t my_bitfield, bitfield_t other_bitfield,
 {
     //create temporary bitfield for this functin
     //copy our bitfield
-    bitfield_t have_or_pending = malloc(sizeof(my_bitfield));
-    memcpy(have_or_pending, my_bitfield, sizeof(my_bitfield));
+    bitfield_t have_or_pending = malloc(g_bitfield_len);
+    memcpy(have_or_pending, my_bitfield, g_bitfield_len);
     //then set bits we have requested (pending)
     int q, pending;
     for (q = 0 ; q < n_peers ; q++)
