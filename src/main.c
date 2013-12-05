@@ -275,18 +275,36 @@ int main(int argc, char *argv[])
             peer_handle_periodic(&peers[i], our_peer_id, our_bitfield, peers, num_peers);
         }
 
-        // Fake picking some peers to unchoke
         if (time(NULL) - last_unchoke_time > g_config.unchoke_interval)
         {
-            last_unchoke_time = time(NULL);
-            last_unchoke_index = (last_unchoke_index + 1) % num_peers;
-            for (i = 0; i < g_config.n_preferred_neighbors; i++)
+            if (we_have_file)
             {
-                send_unchoke(peers[(last_unchoke_index + i) % num_peers].to_fd);
+                // Pick random preferred neighbors (this isn't random; it just
+                // cycles, but it's probably close enough)
+                last_unchoke_time = time(NULL);
+                last_unchoke_index = (last_unchoke_index + 1) % num_peers;
+                for (i = 0; i < g_config.n_preferred_neighbors; i++)
+                {
+                    send_unchoke(peers[(last_unchoke_index + i) % num_peers].to_fd);
+                }
+                for (i = g_config.n_preferred_neighbors; i < num_peers; i++)
+                {
+                    send_choke(peers[(last_unchoke_index + i) % num_peers].to_fd);
+                }
             }
-            for (i = g_config.n_preferred_neighbors; i < num_peers; i++)
+            else
             {
-                send_choke(peers[(last_unchoke_index + i) % num_peers].to_fd);
+                // TODO: Calculate preferred neighbors
+                last_unchoke_time = time(NULL);
+                last_unchoke_index = (last_unchoke_index + 1) % num_peers;
+                for (i = 0; i < g_config.n_preferred_neighbors; i++)
+                {
+                    send_unchoke(peers[(last_unchoke_index + i) % num_peers].to_fd);
+                }
+                for (i = g_config.n_preferred_neighbors; i < num_peers; i++)
+                {
+                    send_choke(peers[(last_unchoke_index + i) % num_peers].to_fd);
+                }
             }
         }
 
