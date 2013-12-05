@@ -180,6 +180,12 @@ int peer_handle_periodic(struct peer_info *peer, int our_peer_id, bitfield_t our
 {
     fprintf(stderr, "peer_handle_periodic(%d)\n", peer->peer_id);
 
+    // Check whether this peer has the whole file yet
+    if (bitfield_filled(peer->bitfield))
+    {
+        peer->has_file = 1;
+    }
+
     if (peer->state == PEER_NOT_CONNECTED)
     {
         fprintf(stderr, "\tstate=PEER_NOT_CONNECTED\n");
