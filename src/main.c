@@ -140,9 +140,9 @@ int main(int argc, char *argv[])
 
     // Info for doing peer choking/unchoking
     time_t last_unchoke_time = time(NULL);
-    int last_unchoke_index = -1;
+    //int last_unchoke_index = -1;
     time_t last_optimistic_time = time(NULL);
-    int last_optimistic_index = -1;
+    //int last_optimistic_index = -1;
 
     /*
      * select() loop
@@ -291,41 +291,75 @@ int main(int argc, char *argv[])
         // Update preferred neighbors if the time interval has passed
         if (time(NULL) - last_unchoke_time > g_config.unchoke_interval)
         {
+            int k = g_config.n_preferred_neighbors;
             last_unchoke_time = time(NULL);
             if (we_have_file)
             {
-                // Pick random preferred neighbors (this isn't random; it just
-                // cycles, but it's probably close enough)
-                last_unchoke_index = (last_unchoke_index + 1) % num_peers;
-                for (i = 0; i < g_config.n_preferred_neighbors; i++)
+                // CHOKE EVERYONE, MuAahAHAUAHAH~
+                int j, random_index;
+                for (j = 0; j < num_peers; j++)
                 {
-                    int temp_index = (last_unchoke_index + i) % num_peers;
-                    send_unchoke(peers[temp_index].to_fd);
-                    peers[temp_index].choked_by_us = 0;
+                    send_choke(peers[j].to_fd);
                 }
-                for (i = g_config.n_preferred_neighbors; i < num_peers; i++)
+                int peers_unchoked = 0;
+                for (;peers_unchoked < k;)
                 {
-                    int temp_index = (last_unchoke_index + i) % num_peers;
-                    send_choke(peers[temp_index].to_fd);
-                    peers[temp_index].choked_by_us = 1;
+                    random_index = rand() % num_peers;
+                    if (peers[random_index].interested_in_us == 1)
+                    {
+                        peers[random_index].optimistic_flag = 0;
+                        peers[random_index].choked_by_us = 0;
+                        peers[random_index].pieces_this_interval = 0;
+                        send_unchoke(peers[random_index].to_fd);
+                    }
                 }
             }
             else
             {
-                // TODO: Calculate preferred neighbors
-                last_unchoke_index = (last_unchoke_index + 1) % num_peers;
-                for (i = 0; i < g_config.n_preferred_neighbors; i++)
+                int fastest_peers[k];
+                int j, max_piece, max_id, max_index;
+                for (i = 0; i < k; i++) // find k fastest
                 {
-                    int temp_index = (last_unchoke_index + i) % num_peers;
-                    send_unchoke(peers[temp_index].to_fd);
-                    peers[temp_index].choked_by_us = 0;
+                    for (j = 0; j < num_peers; j++)
+                    {
+                        max_piece = -1;
+                        max_index = -1;
+                        if (peers[j].pieces_this_interval > max_piece &&
+                                peers[j].interested_in_us)
+                        {
+                            max_piece = peers[j].pieces_this_interval;
+                            max_id = peers[j].peer_id;
+                            max_index = j;
+                        }
+                    }
+                    if (max_index == -1)
+                    {
+                        fprintf(stderr, "less than k peers in pref unchoke\n");
+                        break;
+                    }
+                    peers[max_index].pieces_this_interval = 0;
+                    fastest_peers[i] = max_id;
                 }
-                for (i = g_config.n_preferred_neighbors; i < num_peers; i++)
+                for (i = 0; i < num_peers; i++)
                 {
-                    int temp_index = (last_unchoke_index + i) % num_peers;
-                    send_choke(peers[temp_index].to_fd);
-                    peers[temp_index].choked_by_us = 1;
+                    for (j = 0; j < k; j++)
+                    {
+                        if (peers[i].peer_id == fastest_peers[j])
+                        { // found a new preferred peer!!! yay! cake for everyone!
+                            peers[i].optimistic_flag = 0;
+                            peers[i].choked_by_us = 0;
+                            peers[i].pieces_this_interval = 0;
+                            send_unchoke(peers[i].to_fd);
+                        }
+                    }
+                    if (j == k)
+                    {
+                        peers[i].optimistic_flag = 0;
+                        peers[i].choked_by_us = 1;
+                        send_choke(peers[i].to_fd);
+                    }
                 }
+                log_change_preferred(our_peer_id, k, fastest_peers);
             }
         }
 
@@ -339,10 +373,10 @@ int main(int argc, char *argv[])
                 {
                     peers[i].optimistic_flag = 0;
                     peers[i].state = PEER_WAIT_UNCHOKED;
-                    send_choke(peers[i].peer_id);
+                    send_choke(peers[i].to_fd);
                 }
             }
-            int random_index;
+            int random_index, timeout_blah = 0;
             for (;;)
             {
                 random_index = rand() % num_peers;
@@ -351,8 +385,12 @@ int main(int argc, char *argv[])
                 {
                     peers[random_index].optimistic_flag = 1;
                     peers[random_index].state = PEER_WAIT_UNCHOKED;
-                    send_unchoke(peers[random_index].peer_id);
+                    send_unchoke(peers[random_index].to_fd);
                     break;
+                }
+                if (++timeout_blah > 5 * num_peers)
+                {
+                    break; // prevent infinite loop
                 }
             }
             log_optimistic_unchoke(our_peer_id, peers[random_index].peer_id);
