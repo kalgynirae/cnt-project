@@ -14,7 +14,7 @@ enum {
     PEER_WAIT_FOR_HANDSHAKE,
     PEER_WAIT_FOR_BITFIELD,
     PEER_CHOKED,
-    PEER_WAIT_UNCHOKED
+    PEER_UNCHOKED
 };
 
 void peer_handle_data(struct peer_info *peer, message_t msg_type,

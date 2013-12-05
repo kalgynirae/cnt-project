@@ -52,7 +52,7 @@ void peer_handle_data(struct peer_info *peer, message_t msg_type,
     else if (msg_type == UNCHOKE)
     {
         fprintf(stderr, "type=UNCHOKE\n");
-        peer->state = PEER_WAIT_UNCHOKED;
+        peer->state = PEER_UNCHOKED;
         log_unchoked_by(our_peer_id, peer->peer_id);
 
         // Send a request to this peer right away
@@ -157,18 +157,21 @@ void peer_handle_data(struct peer_info *peer, message_t msg_type,
             send_have(peers[i].to_fd, piece_idx);
         }
 
-        // send new request
-        unsigned int random_piece = find_interesting_piece(our_bitfield, peer->bitfield,
-                peers, num_peers);
-        if (random_piece == NO_INTERESTING_PIECE)
+        // If we are still unchoked, send a new request
+        if (peer->state == PEER_UNCHOKED)
         {
-            fprintf(stderr, "we wanted to request, but no pieces are "
-                            "interesting\n");
-        }
-        else
-        {
-            send_request(peer->to_fd, random_piece);
-            peer->requested = random_piece;
+            unsigned int random_piece = find_interesting_piece(our_bitfield, peer->bitfield,
+                    peers, num_peers);
+            if (random_piece == NO_INTERESTING_PIECE)
+            {
+                fprintf(stderr, "we wanted to request, but no pieces are "
+                                "interesting\n");
+            }
+            else
+            {
+                send_request(peer->to_fd, random_piece);
+                peer->requested = random_piece;
+            }
         }
     }
     else if (msg_type == REQUEST)
@@ -246,9 +249,9 @@ void peer_handle_periodic(struct peer_info *peer, int our_peer_id, bitfield_t ou
     {
         fprintf(stderr, "state=CHOKED\n");
     }
-    else if (peer->state == PEER_WAIT_UNCHOKED)
+    else if (peer->state == PEER_UNCHOKED)
     {
-        fprintf(stderr, "state=PEER_WAIT_UNCHOKED\n");
+        fprintf(stderr, "state=PEER_UNCHOKED\n");
     }
 }
 
