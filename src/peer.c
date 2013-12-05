@@ -346,7 +346,7 @@ void print_bitfield(FILE *stream, bitfield_t bitfield)
 {
     if (bitfield == NULL) { fprintf(stderr, "bitfield null! abort! abort!\n"); }
     int j;
-    for (j = 0 ; j < g_bitfield_len ; j++) {
+    for (j = g_bitfield_len - 1 ; j >= 0 ; j--) {
         fprintf(stream, "%x ", bitfield[j] & 0xFF);
     }
     fprintf(stream, "\n");
