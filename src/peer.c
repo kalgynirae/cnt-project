@@ -125,25 +125,12 @@ int peer_handle_data(struct peer_info *peer, message_t msg_type,
             print_bitfield(stderr, our_bitfield);
             // increment pieces_this_interval field of peer_info
             peer->pieces_this_interval++;
-            // check if we downloaded the entire file, write appropriate log messages
-            // TODO: WHAT IS HAPPENING HERE?????
+
+            // Log it up!
+            log_downloaded_piece(our_peer_id, piece_idx);
+
             int i; // counter for everything in this branch
-            for (i = 0; i < g_bitfield_len; i++)
-            {   //this is not checking all the bits
-                if (!bitfield_get(our_bitfield, i))
-                {
-                    break;
-                }
-            }
-            if (i == g_bitfield_len) // meaning we just got the last piece
-            {   //are we setting the other peer's has file based on our bitfield?
-                peer->has_file = 1;
-                log_downloaded_file(our_peer_id);
-            }
-            else
-            {
-                log_downloaded_piece(our_peer_id, piece_idx);
-            }
+
             // send new request
             unsigned int next_idx;
             for (;;)
@@ -299,6 +286,27 @@ void init_bitfield(bitfield_t bitfield, int has_file)
 {
     int val = has_file ? 0xFF : 0x00;
     memset(bitfield, val, g_bitfield_len);
+}
+
+int bitfield_filled(bitfield_t bitfield)
+{
+    int i;
+    for (i = 0 ; i < g_bitfield_len - 1; i++)
+    {
+        if (bitfield[i] != 0xFF)
+        {   //not filled - piece missing
+            return 0;
+        }
+    }
+    for(i = 0 ; i < (g_config.file_size / g_config.piece_size) % 8; i++)
+    {   //check last byte of bitfield, not necessarily full
+        if ((bitfield[g_bitfield_len - 1] & (0x1 << i)) == 0)
+        {
+            return 0;
+        }
+    }
+    
+    return 1;
 }
 
 //print bitfield

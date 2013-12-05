@@ -29,6 +29,9 @@ int bitfield_set(bitfield_t bitfield, int idx);
 //initialize bitfield
 void init_bitfield(bitfield_t bitfield, int has_piece);
 
+//return 1 if bitfield full (has all pieces). Else return 0.
+int bitfield_filled(bitfield_t bitfield)
+
 //print bitfield
 void print_bitfield(FILE *stream, bitfield_t bitfield);
 
