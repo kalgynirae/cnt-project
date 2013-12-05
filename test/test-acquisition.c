@@ -63,6 +63,14 @@ int main(int argc, char *argv[])
         requested[idx] = 1;
         print_bytes(b1);
     }
+    if (bitfield_filled(b1))
+    {
+        printf("bitfield_filled=1\n");
+    }
+    else 
+    {
+        printf("ERROR: bitfield_filled=0\n");
+    }
 
     return 0;
 }
