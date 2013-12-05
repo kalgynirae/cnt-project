@@ -23,6 +23,7 @@
 //global configuration options
 extern struct common_cfg g_config;
 extern int g_bitfield_len;
+extern int g_num_pieces;
 
 void ensure_peer_dir_exists(int id);
 
@@ -49,6 +50,9 @@ int main(int argc, char *argv[])
     printf("FileName = %s\n", g_config.file_name);
     printf("FileSize = %d\n", g_config.file_size);
     printf("PieceSize = %d\n", g_config.piece_size);
+
+    printf("g_num_pieces = %d\n", g_num_pieces);
+    printf("g_bitfield_len = %d\n", g_bitfield_len);
 
     int our_peer_id = atoi(argv[1]);
     //make sure runtime/peer_{id} exists
