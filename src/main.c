@@ -270,6 +270,13 @@ int main(int argc, char *argv[])
             peer_handle_periodic(&peers[i], our_peer_id, our_bitfield, peers, num_peers);
         }
 
+        // Check whether we have the whole file yet
+        if (bitfield_filled(our_bitfield))
+        {
+            we_have_file = 1;
+            log_downloaded_file(our_peer_id);
+        }
+
     } // End of select() loop
 
     //free bitfields
