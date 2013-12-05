@@ -25,6 +25,8 @@ int main(int argc, char *argv[])
     g_num_pieces = atoi(argv[1]);     
     g_bitfield_len = g_num_pieces / 8;    
     g_bitfield_len += ((g_num_pieces % 8 == 0) ? 0 : 1);
+    printf("g_num_pieces: %d, g_bitfield_len: %d\n", g_num_pieces, 
+            g_bitfield_len);
     unsigned char b1[g_bitfield_len];
     unsigned char b2[g_bitfield_len];
     init_bitfield(b1,0);
@@ -35,20 +37,22 @@ int main(int argc, char *argv[])
     peers[2].requested = -1;
     peers[3].requested = -1;
 
-    printf("b1: ");
+    printf("start: ");
     print_bytes(b1);
     printf("\n");
-    printf("b2: ");
+    printf("goal:  ");
     print_bytes(b2);
     printf("\n");
 
-    int idx;
-    while (idx >= 0)
+
+    int idx = 0, i = 0;
+    for (i = 0 ; i < g_num_pieces ; i++)
     {
         if ((idx = find_interesting_piece(b1, b2, peers, N_PEERS)) < 0)
         {
             printf("Failed to find interesting piece\n");
         }
+        printf("getting %d\n", idx);
         bitfield_set(b1, idx);
         print_bytes(b1);
     }
@@ -77,7 +81,7 @@ void print_bytes(bitfield_t bitfield)
     putchar('<');
     for (i = g_bitfield_len - 1 ; i >= 0 ; i--)
     {
-        printf(" %2X", bitfield[i] & 0xFF);
+        printf(" %02X", bitfield[i] & 0xFF);
     }
     printf(">\n");
 }
