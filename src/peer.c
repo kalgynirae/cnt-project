@@ -11,7 +11,8 @@ struct bitfield_seg
 
 void peer_handle_data(struct peer_info *peer, message_t msg_type, 
         unsigned char *payload, int nbytes, bitfield_t our_bitfield,
-        struct peer_info *peers, int num_peers, int our_peer_id)
+        struct peer_info *peers, int num_peers, int our_peer_id,
+        int we_have_file)
 {
     fprintf(stderr, "-----peer_handle_data(%d) ", peer->peer_id); // no \n!
     int sender;
@@ -23,17 +24,25 @@ void peer_handle_data(struct peer_info *peer, message_t msg_type,
         bitfield_set(peer->bitfield, piece_idx);
 
         // send out not/interesting
-        int interesting = find_interesting_piece(our_bitfield, peer->bitfield,
-                peers, num_peers);
-        if (interesting == NO_INTERESTING_PIECE)
+        if (!we_have_file)
         {
-            send_not_interested(peer->to_fd);
+            int interesting = find_interesting_piece(our_bitfield, peer->bitfield,
+                    peers, num_peers);
+            if (interesting == NO_INTERESTING_PIECE)
+            {
+                send_not_interested(peer->to_fd);
+            }
+            else
+            {
+                send_interested(peer->to_fd);
+            }
         }
         else
         {
-            send_interested(peer->to_fd);
+            send_not_interested(peer->to_fd);
         }
-        log_received_have(our_peer_id, peer->peer_id);
+
+        log_received_have(our_peer_id, peer->peer_id, piece_idx);
     }
     else if (msg_type == NOT_INTERESTED)
     {
@@ -106,15 +115,22 @@ void peer_handle_data(struct peer_info *peer, message_t msg_type,
         memcpy(peer->bitfield, payload, g_bitfield_len);
 
         // send out not/interesting
-        int interesting = find_interesting_piece(our_bitfield, peer->bitfield, 
-                peers, num_peers);
-        if (interesting == NO_INTERESTING_PIECE)
+        if (!we_have_file)
         {
-            send_not_interested(peer->to_fd);
+            int interesting = find_interesting_piece(our_bitfield, peer->bitfield,
+                    peers, num_peers);
+            if (interesting == NO_INTERESTING_PIECE)
+            {
+                send_not_interested(peer->to_fd);
+            }
+            else
+            {
+                send_interested(peer->to_fd);
+            }
         }
         else
         {
-            send_interested(peer->to_fd);
+            send_not_interested(peer->to_fd);
         }
 
         if (peer->state == PEER_WAIT_FOR_BITFIELD)
@@ -135,7 +151,7 @@ void peer_handle_data(struct peer_info *peer, message_t msg_type,
         unsigned int piece_idx = unpack_int(payload);
         fprintf(stderr, "\tidx: %d\n", piece_idx);
         extract_and_save_piece(nbytes, payload, our_peer_id);     
-        fprintf(stderr, "\textracted and saved%d\n", piece_idx);
+        fprintf(stderr, "\textracted and saved %d\n", piece_idx);
         // update our_bitfield
         bitfield_set(our_bitfield, piece_idx);
         fprintf(stderr, "\tnew bitfield: ");
@@ -147,9 +163,17 @@ void peer_handle_data(struct peer_info *peer, message_t msg_type,
         peer->requested = -1;
 
         // Log it up!
-        log_downloaded_piece(our_peer_id, piece_idx);
-
-        int i; // counter for everything in this branch
+        int num_pieces_so_far = 0;
+        int i;
+        for (i = 0; i < g_num_pieces; i++)
+        {
+            if (bitfield_get(our_bitfield, i))
+            {
+                num_pieces_so_far++;
+            }
+        }
+        log_downloaded_piece(our_peer_id, piece_idx, peer->peer_id,
+                num_pieces_so_far);
 
         // send haves to all peers
         for (i = 0; i < num_peers; i++)

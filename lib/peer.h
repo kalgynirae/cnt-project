@@ -19,7 +19,8 @@ enum {
 
 void peer_handle_data(struct peer_info *peer, message_t msg_type,
         unsigned char *payload, int nbytes, bitfield_t our_bitfield,
-        struct peer_info *peers, int num_peers, int our_peer_id);
+        struct peer_info *peers, int num_peers, int our_peer_id,
+        int we_have_file);
 
 void peer_handle_periodic(struct peer_info *peer, int our_peer_id,
         bitfield_t our_bitfield, struct peer_info *peers, int num_peers);

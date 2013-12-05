@@ -31,7 +31,7 @@ void log_unchoked_by(int receiver, int sender);
 void log_receive_choke(int receiver, int sender);
 
 //receiver got HAVE message from sender
-void log_received_have(int receiver, int sender);
+void log_received_have(int receiver, int sender, int piece_idx);
 
 //receiver got INTERESTED message from sender
 void log_received_interested(int receiver, int sender);
@@ -40,7 +40,7 @@ void log_received_interested(int receiver, int sender);
 void log_received_not_interested(int receiver, int sender);
 
 //peer has finished downloading piece
-void log_downloaded_piece(int peer, int piece);
+void log_downloaded_piece(int peer, int piece, int other_peer, int num_pieces);
 
 //peer has finished all pieces of file
 void log_downloaded_file(int peer);
