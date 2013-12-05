@@ -21,8 +21,9 @@ void peer_handle_data(struct peer_info *peer, message_t msg_type,
         fprintf(stderr, "type=HAVE: %d\n", piece_idx);
         bitfield_set(peer->bitfield, piece_idx);
 
-        // send not/interested to peer
-        int interesting = find_interesting_piece(our_bitfield, peer->bitfield);
+        // send out not/interesting
+        int interesting = find_interesting_piece(our_bitfield, peer->bitfield,
+                peers, num_peers);
         if (interesting == NO_INTERESTING_PIECE)
         {
             send_not_interested(peer->to_fd);
@@ -51,7 +52,9 @@ void peer_handle_data(struct peer_info *peer, message_t msg_type,
 
         // Send a request to this peer right away
         unsigned int random_piece = find_interesting_piece(our_bitfield,
-                                                           peer->bitfield);
+                                                           peer->bitfield,
+                                                           peers,
+                                                           num_peers);
         if (random_piece == NO_INTERESTING_PIECE)
         {
             fprintf(stderr, "we wanted to request, but no pieces are "
@@ -96,8 +99,9 @@ void peer_handle_data(struct peer_info *peer, message_t msg_type,
         // update peer's bitfield in peer_info
         memcpy(peer->bitfield, payload, g_bitfield_len);
 
-        // send not/interested to peer
-        int interesting = find_interesting_piece(our_bitfield, peer->bitfield);
+        // send out not/interesting
+        int interesting = find_interesting_piece(our_bitfield, peer->bitfield, 
+                peers, num_peers);
         if (interesting == NO_INTERESTING_PIECE)
         {
             send_not_interested(peer->to_fd);
@@ -145,8 +149,8 @@ void peer_handle_data(struct peer_info *peer, message_t msg_type,
         }
 
         // send new request
-        unsigned int random_piece = find_interesting_piece(our_bitfield,
-                                                           peer->bitfield);
+        unsigned int random_piece = find_interesting_piece(our_bitfield, peer->bitfield,
+                peers, num_peers);
         if (random_piece == NO_INTERESTING_PIECE)
         {
             fprintf(stderr, "we wanted to request, but no pieces are "
@@ -237,8 +241,22 @@ void peer_handle_periodic(struct peer_info *peer, int our_peer_id, bitfield_t ou
     }
 }
 
-int find_interesting_piece(bitfield_t my_bitfield, bitfield_t other_bitfield)
+int find_interesting_piece(bitfield_t my_bitfield, bitfield_t other_bitfield,
+        struct peer_info *peers, int n_peers)
 {
+    //DEBUG
+    int q;
+    for (q = 0 ; q < n_peers ; q++)
+    {
+        printf("peers[%d].bitfield=", q);
+        int w;
+        for (w = 0 ; w < g_bitfield_len ; w++)
+        {
+            printf(" %x", peers[q].bitfield[w] & 0xFF);
+        }
+        printf("\n");
+    }
+    //ENDDEBUG
     //find interesting byte of bitfield
     int i, j = 0;
     char interesting;   //pieces in segment other has that I don't

@@ -33,7 +33,7 @@ struct peer_info
     int from_fd;        // descriptor of open socket for receiving from peer
     int time_last_message_sent; // time in seconds since THE EPOCH, using time()
     bitfield_t bitfield;
-    unsigned int requested;     // piece index requested from this peer
+    int requested;     // piece index requested from this peer
     int pieces_this_interval;   // # of pieces completed this preferred unchoking interval
     int optimistic_flag;        // 1 if this peer was optimistically unchoked, 0 otherwise
     int choked_by_us;           // whether the peer is choked by us

@@ -1,4 +1,5 @@
 #include "peer.h"
+#define N_PEERS 1
 
 void print_bits(bitfield_t bitfield);
 void test_bit(int idx, bitfield_t bitfield);
@@ -7,12 +8,19 @@ void test_set(int idx, bitfield_t bitfield);
 
 extern int g_bitfield_len;
 
+struct peer_info peers[N_PEERS];
+
 int main()
 {
-    printf("--------------------Testing has_piece--------------------\n");
+    //setup
     g_bitfield_len = 4;     //testing only! don't set this outside of init
     unsigned char b1[4] = { 0x3, 0x0, 0x3};
     unsigned char b2[4] = { 0x8D, 0xC, 0x81};
+    unsigned char b3[4] = { 0xAA, 0xAA, 0xAA};
+    //mock up peers
+    peers[0].bitfield = b3;
+
+    printf("--------------------Testing has_piece--------------------\n");
 
     test_bit(0, b1);
     test_bit(1, b1);
@@ -100,7 +108,8 @@ void test_interesting(bitfield_t my_bitfield, bitfield_t other_bitfield, int rep
     int idx;
     while (reps-- > 0)
     {
-        if ((idx = find_interesting_piece(my_bitfield, other_bitfield)) < 0)
+        idx = find_interesting_piece(my_bitfield, other_bitfield, peers, N_PEERS);
+        if (idx < 0)
         {
             print_bits(my_bitfield);
             printf(" needs nothing from ");

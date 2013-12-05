@@ -26,7 +26,8 @@ void peer_handle_periodic(struct peer_info *peer, int our_peer_id,
 
 //randomly choose a piece index owned by other peer and not us
 //return -1 if no interesting piece
-int find_interesting_piece(bitfield_t my_bitfield, bitfield_t other_bitfield);
+int find_interesting_piece(bitfield_t my_bitfield, bitfield_t other_bitfield,
+        struct peer_info *peers, int n_peers);
 
 //returns a non-zero value if bitfield has a bit set for the piece idx
 int bitfield_get(bitfield_t bitfield, int idx);
