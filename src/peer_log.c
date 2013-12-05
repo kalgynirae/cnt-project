@@ -107,9 +107,9 @@ void log_received_not_interested(int receiver, int sender)
 //peer has finished downloading piece
 void log_downloaded_piece(int peer, int piece, int other_peer, int num_pieces)
 {
-    char log[80];
+    char log[128];
 
-    snprintf(log, 80, "Peer %d has downloaded the piece %d from peer %d. "
+    snprintf(log, 128, "Peer %d has downloaded the piece %d from peer %d. "
                       "Now the number of pieces it has is %d\n", peer, piece,
              other_peer, num_pieces);
 
