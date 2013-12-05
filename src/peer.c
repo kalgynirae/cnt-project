@@ -352,9 +352,12 @@ void init_bitfield(bitfield_t bitfield, int has_file)
 {
     int val = has_file ? 0xFF : 0x00;
     memset(bitfield, val, g_bitfield_len);
-    int n_leading_zeros = 8 - (g_num_pieces % 8);
-    char mask = (0xFF >> n_leading_zeros);
-    bitfield[g_bitfield_len - 1] &= mask;
+    if (g_num_pieces % 8 > 0)
+    {
+        int n_leading_zeros = 8 - (g_num_pieces % 8);
+        char mask = (0xFF >> n_leading_zeros);
+        bitfield[g_bitfield_len - 1] &= mask;
+    }
 }
 
 int bitfield_filled(bitfield_t bitfield)
