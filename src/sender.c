@@ -71,12 +71,13 @@ int send_request(int sock_fd, unsigned int piece_idx)
     return norm_send(sock_fd, REQUEST, idx, PIECE_IDX_LEN);
 }
 
-int send_piece(int sock_fd, unsigned int piece_idx, int piece_size, int peer_id)
+int send_piece(int sock_fd, unsigned int piece_idx, int piece_size,
+        int our_peer_id)
 {
     fprintf(stderr, ">>> Sending piece %d through socket %d\n", piece_idx,
            sock_fd);
     unsigned char *content;
-    int len = read_piece(piece_idx, (char**)&content, piece_size, peer_id);
+    int len = read_piece(piece_idx, (char**)&content, piece_size, our_peer_id);
     if (len < 0)
     {
         // read_piece already printed an error, so we don't need to here

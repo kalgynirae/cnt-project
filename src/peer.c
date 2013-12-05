@@ -173,7 +173,8 @@ void peer_handle_data(struct peer_info *peer, message_t msg_type,
         else
         {
             unsigned int requested_idx = unpack_int(payload);
-            send_piece(peer->to_fd, requested_idx, g_config.piece_size, peer->peer_id);
+            send_piece(peer->to_fd, requested_idx, g_config.piece_size,
+                       our_peer_id);
         }
     }
     else

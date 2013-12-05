@@ -5,6 +5,8 @@
 
 // TODO: Fix paths to use ~/project/peer_{id}/{filename}
 
+extern int g_num_pieces;
+
 int file_split(char* FILENAME, int FS, int PS, int P_ID){
 	//FILENAME: cfg.file_name
 	//FS: cfg.file_size
@@ -20,10 +22,10 @@ int file_split(char* FILENAME, int FS, int PS, int P_ID){
 	if(fpr == NULL){
 		printf("File does not exist\n");
 	}else{
-		for(j = 1; j <= (FS/PS); j++){//read each piece of file
+		for(j = 0; j < g_num_pieces; j++){//read each piece of file
 			sprintf(FILEWRITE, "runtime/peer_%d/piece_%d", P_ID, j);
 			fpw = fopen(FILEWRITE,"w");
-			for(i = 1; i <= PS; i++){//copy piece of file byte by byte
+			for(i = 0; i < PS; i++){//copy piece of file byte by byte
 				c = getc(fpr);//read bye of file
 				if(c != EOF){//copy file byte
 					fprintf(fpw, "%c", c);
@@ -50,14 +52,14 @@ int file_merge(char* FILENAME, int FS, int PS, int P_ID){
 	char FILEREAD [32];//name of file piece to be read
 	int i, j;
 	fpw = fopen(FILENAME,"w");
-	for(j = 1; j <= (FS/PS); j++){//write each piece of file
+	for(j = 0; j < g_num_pieces; j++){//write each piece of file
 		sprintf(FILEREAD, "runtime/peer_%d/piece_%d", P_ID, j);
 		fpr = fopen(FILEREAD,"r");
 		if(fpr == NULL){
 			printf("ERROR: file piece %d does not exist\n", j);
 			break;
 		}else{
-			for(i = 1; i <= PS; i++){//copy piece of file byte by byte
+			for(i = 0; i < PS; i++){//copy piece of file byte by byte
 				c = getc(fpr);//read bye of file
 				if(c != EOF){//copy file byte
 					fprintf(fpw, "%c", c);
@@ -85,7 +87,8 @@ int read_piece(unsigned int piece_idx, char** buffer, int PS, int P_ID)
 	sprintf(FILEREAD, "runtime/peer_%d/piece_%d", P_ID, piece_idx);
 	fpr = fopen(FILEREAD,"r");
 	if(fpr == NULL){
-		printf("ERROR: file piece %d does not exist\n", piece_idx);
+		fprintf(stderr, "ERROR: file piece %d (path=%s) does not "
+                        "exist\n", piece_idx, FILEREAD);
 		FS = -1;
 	}else{
 		int i;
