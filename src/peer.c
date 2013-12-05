@@ -68,6 +68,7 @@ void peer_handle_data(struct peer_info *peer, message_t msg_type,
         else
         {
             send_request(peer->to_fd, random_piece);
+            peer->requested = random_piece;
         }
     }
     else if (msg_type == HANDSHAKE)
@@ -142,6 +143,9 @@ void peer_handle_data(struct peer_info *peer, message_t msg_type,
         // increment pieces_this_interval field of peer_info
         peer->pieces_this_interval++;
 
+        // Say the piece is no longer requested
+        peer->requested = -1;
+
         // Log it up!
         log_downloaded_piece(our_peer_id, piece_idx);
 
@@ -164,6 +168,7 @@ void peer_handle_data(struct peer_info *peer, message_t msg_type,
         else
         {
             send_request(peer->to_fd, random_piece);
+            peer->requested = random_piece;
         }
     }
     else if (msg_type == REQUEST)
