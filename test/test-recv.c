@@ -79,12 +79,12 @@ int main(int argc, char *argv[])
     int i;
     for (i = 0 ; i < 8 ; i++)
     {
-        type = recv_msg(info.socket_fd, &payload_len, payload);
+        type = recv_msg(info.from_fd, &payload_len, payload);
         process_msg(payload, payload_len, type);
         printf("\n");
     }
 
-    close(info.socket_fd);
+    close(info.from_fd);
 
     return 0;
 }
