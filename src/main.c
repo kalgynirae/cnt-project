@@ -108,7 +108,7 @@ int main(int argc, char *argv[])
     char bagels[g_bitfield_len];
     bitfield_t our_bitfield = (bitfield_t) bagels;
     init_bitfield(our_bitfield, we_have_file);
-    printf("Our bitfield: ");
+    fprintf(stderr, "Our bitfield: ");
     print_bitfield(stderr, our_bitfield);
 
     /*
@@ -348,7 +348,8 @@ int main(int argc, char *argv[])
             if (!lolnope)
             {
                 // We are done.
-                exit(0);
+                fprintf(stderr, "We are done.\n");
+                exit(EXIT_SUCCESS);
             }
         }
     } // End of select() loop
