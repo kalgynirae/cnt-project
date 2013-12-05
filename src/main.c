@@ -316,20 +316,46 @@ int main(int argc, char *argv[])
                 last_unchoke_index = (last_unchoke_index + 1) % num_peers;
                 for (i = 0; i < g_config.n_preferred_neighbors; i++)
                 {
-                    send_unchoke(peers[(last_unchoke_index + i) % num_peers].to_fd);
+                    int temp_index = (last_unchoke_index + i) % num_peers;
+                    send_unchoke(peers[temp_index].to_fd);
+                    peers[temp_index].choked_by_us = 0;
                 }
                 for (i = g_config.n_preferred_neighbors; i < num_peers; i++)
                 {
-
-                    send_choke(peers[(last_unchoke_index + i) % num_peers].to_fd);
+                    int temp_index = (last_unchoke_index + i) % num_peers;
+                    send_choke(peers[temp_index].to_fd);
+                    peers[temp_index].choked_by_us = 1;
                 }
             }
         }
 
-        // TODO: Pick a new optimisticly unchoked peer
         if (time(NULL) - last_optimistic_time >
                 g_config.optimistic_unchoke_interval)
         {
+            int i;
+            for (i = 0; i < num_peers; i++) // choke old optimistic peer
+            {
+                if (peers[i].optimistic_flag == 1)
+                {
+                    peers[i].optimistic_flag = 0;
+                    peers[i].state = PEER_WAIT_UNCHOKED;
+                    send_choke(peers[i].peer_id);
+                }
+            }
+            int random_index;
+            for (;;)
+            {
+                random_index = rand() % num_peers;
+                if (peers[random_index].state == PEER_CHOKED && 
+                        peers[random_index].interested_in_us) // Found new opt peer
+                {
+                    peers[random_index].optimistic_flag = 1;
+                    peers[random_index].state = PEER_WAIT_UNCHOKED;
+                    send_unchoke(peers[random_index].peer_id);
+                    break;
+                }
+            }
+            log_optimistic_unchoke(our_peer_id, peers[random_index].peer_id);
         }
 
         // Check whether everyone has the file
