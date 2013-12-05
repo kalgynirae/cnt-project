@@ -77,6 +77,11 @@ int send_piece(int sock_fd, unsigned int piece_idx, int piece_size, int peer_id)
            sock_fd);
     unsigned char *content;
     int len = read_piece(piece_idx, (char**)&content, piece_size, peer_id);
+    if (len < 0)
+    {
+        // read_piece already printed an error, so we don't need to here
+        return -1;
+    }
     int payload_len = PIECE_IDX_LEN + len;
     unsigned char payload[payload_len];
     pack_int(piece_idx, payload);     //write piece len to start of payload

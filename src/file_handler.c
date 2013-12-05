@@ -99,9 +99,9 @@ int read_piece(unsigned int piece_idx, char** buffer, int PS, int P_ID)
 				break;
 			}
 		}
+		fclose(fpr);
 	}
     
-	fclose(fpr);
     //return the size of the content read
     return FS;
 }
