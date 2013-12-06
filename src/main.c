@@ -38,6 +38,7 @@ int main(int argc, char *argv[])
         fprintf(stderr, "Usage: %s <peer_id>\n", argv[0]);
         exit(EXIT_FAILURE);
     }
+    srand(time(NULL));
 
     struct peer_info *peers = NULL;
 
