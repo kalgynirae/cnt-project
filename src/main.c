@@ -340,6 +340,7 @@ int main(int argc, char *argv[])
         // Check whether everyone has the file
         if (we_have_file)
         {
+            double_check_pieces(our_peer_id, our_bitfield);
             int lolnope = 0;
             int i;
             for (i = 0; i < num_peers; i++)
