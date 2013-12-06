@@ -348,6 +348,15 @@ int bitfield_set(bitfield_t bitfield, int idx)
     return 0;
 }
 
+// This function clears the bit in bitfield at idx to 1
+int bitfield_clr(bitfield_t bitfield, int idx)
+{   
+    char section = bitfield[idx / 8];  //byte containing desired bit
+    char mask = ~(0x1 << (idx % 8));         //mask for desired bit
+    bitfield[idx / 8] = (section & mask);
+    return 0;
+}
+
 void init_bitfield(bitfield_t bitfield, int has_file)
 {
     int val = has_file ? 0xFF : 0x00;

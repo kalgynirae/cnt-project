@@ -36,6 +36,9 @@ int bitfield_get(bitfield_t bitfield, int idx);
 //set the bit at idx in bitfield to 1
 int bitfield_set(bitfield_t bitfield, int idx);
 
+//set the bit at idx in bitfield to 0
+int bitfield_clr(bitfield_t bitfield, int idx);
+
 //initialize bitfield
 void init_bitfield(bitfield_t bitfield, int has_piece);
 

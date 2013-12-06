@@ -26,6 +26,10 @@ extern int g_bitfield_len;
 extern int g_num_pieces;
 
 void ensure_peer_dir_exists(int id);
+//make sure all pieces marked in bitfield are actually owned
+//if so, return 1
+//else, return 0 and clear bits that aren't owned
+int double_check_pieces(int peer_id, bitfield_t bitfield);
 
 int main(int argc, char *argv[])
 {
@@ -347,9 +351,16 @@ int main(int argc, char *argv[])
             }
             if (!lolnope)
             {
-                // We are done.
-                fprintf(stderr, "We are done.\n");
-                exit(EXIT_SUCCESS);
+                if (double_check_pieces(our_peer_id, our_bitfield))
+                {
+                    // We are done.
+                    fprintf(stderr, "We are done.\n");
+                    exit(EXIT_SUCCESS);
+                }
+                else
+                {
+                    we_have_file = 0;
+                }
             }
         }
     } // End of select() loop
@@ -371,4 +382,24 @@ void ensure_peer_dir_exists(int id)
     if (stat(dir, &st) == -1) {
         mkdir(dir, 0700);
     }
+}
+
+int double_check_pieces(int peer_id, bitfield_t bitfield)
+{
+    int ret = 1;    //return value
+    int i;
+    for (i = 0 ; i < g_num_pieces ; i++)
+    {
+        if (bitfield_get(bitfield, i))
+        {   //make sure file exists
+            struct stat st = {0};
+            char filename[64];
+            sprintf(filename, "runtime/peer_%d/piece_%d", peer_id, i);
+            if (stat(filename, &st) == -1) {
+                bitfield_clr(bitfield, i);
+                ret = 0;
+            }
+        }
+    }
+    return ret;
 }
