@@ -351,8 +351,15 @@ int main(int argc, char *argv[])
             }
             if (!lolnope)
             {
+                //make sure we actually have all the pieces
                 if (double_check_pieces(our_peer_id, our_bitfield))
                 {
+                    char filename[128];
+                    sprintf(filename, "runtime/peer_%d/%s", our_peer_id, 
+                            g_config.file_name);
+                    //reconstruct the file
+                    file_merge(filename, g_config.file_size, g_config.piece_size,
+                            our_peer_id);
                     // We are done.
                     fprintf(stderr, "We are done.\n");
                     exit(EXIT_SUCCESS);
