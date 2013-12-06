@@ -32,7 +32,7 @@ void read_cfg(char* cfg_file_name)
     g_num_pieces += (g_config.file_size % g_config.piece_size == 0) ? 0 : 1;
 
     g_bitfield_len = g_num_pieces / 8;
-    g_bitfield_len += (g_config.file_size % 8 == 0) ? 0 : 1;
+    g_bitfield_len += ((g_num_pieces % 8 == 0) ? 0 : 1);
 }
 
 struct peer_info* read_peers(char* cfg_file_name, int *num_peers,
